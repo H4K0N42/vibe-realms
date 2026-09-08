@@ -1,0 +1,1596 @@
+[
+  {
+    "id": "FR01",
+    "set": "base",
+    "suit": "land",
+    "name": "Mountain",
+    "strength": 9,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "flood"
+    ],
+    "relatedCards": [
+      "Smoke",
+      "Wildfire"
+    ]
+  },
+  {
+    "id": "FR02",
+    "set": "base",
+    "suit": "land",
+    "name": "Cavern",
+    "strength": 6,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "weather"
+    ],
+    "relatedCards": [
+      "Dwarvish Infantry",
+      "Dragon"
+    ]
+  },
+  {
+    "id": "FR03",
+    "set": "base",
+    "suit": "land",
+    "name": "Bell Tower",
+    "strength": 8,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR04",
+    "set": "base",
+    "suit": "land",
+    "name": "Forest",
+    "strength": 7,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "beast"
+    ],
+    "relatedCards": [
+      "Elven Archers"
+    ]
+  },
+  {
+    "id": "FR05",
+    "set": "base",
+    "suit": "land",
+    "name": "Earth Elemental",
+    "strength": 4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "land"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR06",
+    "set": "base",
+    "suit": "flood",
+    "name": "Fountain of Life",
+    "strength": 1,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "weapon",
+      "flood",
+      "flame",
+      "land",
+      "weather"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR07",
+    "set": "base",
+    "suit": "flood",
+    "name": "Swamp",
+    "strength": 18,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "flame"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR08",
+    "set": "base",
+    "suit": "flood",
+    "name": "Great Flood",
+    "strength": 32,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "land",
+      "flame"
+    ],
+    "relatedCards": [
+      "Mountain",
+      "Lightning"
+    ]
+  },
+  {
+    "id": "FR09",
+    "set": "base",
+    "suit": "flood",
+    "name": "Island",
+    "strength": 14,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [
+      "flood",
+      "flame"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR10",
+    "set": "base",
+    "suit": "flood",
+    "name": "Water Elemental",
+    "strength": 4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "flood"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR11",
+    "set": "base",
+    "suit": "weather",
+    "name": "Rainstorm",
+    "strength": 8,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "flood",
+      "flame"
+    ],
+    "relatedCards": [
+      "Lightning"
+    ]
+  },
+  {
+    "id": "FR12",
+    "set": "base",
+    "suit": "weather",
+    "name": "Blizzard",
+    "strength": 30,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "leader",
+      "beast",
+      "flame",
+      "army",
+      "flood"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR13",
+    "set": "base",
+    "suit": "weather",
+    "name": "Smoke",
+    "strength": 27,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "flame"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR14",
+    "set": "base",
+    "suit": "weather",
+    "name": "Whirlwind",
+    "strength": 13,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "Rainstorm"
+    ],
+    "relatedCards": [
+      "Blizzard",
+      "Great Flood"
+    ]
+  },
+  {
+    "id": "FR15",
+    "set": "base",
+    "suit": "weather",
+    "name": "Air Elemental",
+    "strength": 4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "weather"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR16",
+    "set": "base",
+    "suit": "flame",
+    "name": "Wildfire",
+    "strength": 40,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "artifact",
+      "beast",
+      "building",
+      "flame",
+      "flood",
+      "land",
+      "leader",
+      "outsider",
+      "undead",
+      "weapon",
+      "weather",
+      "wild",
+      "wizard"
+    ],
+    "relatedCards": [
+      "Mountain",
+      "Great Flood",
+      "Island",
+      "Unicorn",
+      "Dragon"
+    ]
+  },
+  {
+    "id": "FR17",
+    "set": "base",
+    "suit": "flame",
+    "name": "Candle",
+    "strength": 2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "wizard"
+    ],
+    "relatedCards": [
+      "Book of Changes",
+      "Bell Tower"
+    ]
+  },
+  {
+    "id": "FR18",
+    "set": "base",
+    "suit": "flame",
+    "name": "Forge",
+    "strength": 9,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "weapon",
+      "artifact"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR19",
+    "set": "base",
+    "suit": "flame",
+    "name": "Lightning",
+    "strength": 11,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [
+      "Rainstorm"
+    ]
+  },
+  {
+    "id": "FR20",
+    "set": "base",
+    "suit": "flame",
+    "name": "Fire Elemental",
+    "strength": 4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "flame"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR21",
+    "set": "base",
+    "suit": "army",
+    "name": "Knights",
+    "strength": 20,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "leader"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR22",
+    "set": "base",
+    "suit": "army",
+    "name": "Elven Archers",
+    "strength": 10,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "weather"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR23",
+    "set": "base",
+    "suit": "army",
+    "name": "Light Cavalry",
+    "strength": 17,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "land"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR24",
+    "set": "base",
+    "suit": "army",
+    "name": "Dwarvish Infantry",
+    "strength": 15,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR25",
+    "set": "base",
+    "suit": "army",
+    "name": "Rangers",
+    "strength": 5,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "land",
+      "army"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR26",
+    "set": "base",
+    "suit": "wizard",
+    "name": "Collector",
+    "strength": 7,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "artifact",
+      "beast",
+      "building",
+      "flame",
+      "flood",
+      "land",
+      "leader",
+      "outsider",
+      "undead",
+      "weapon",
+      "weather",
+      "wild",
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR27",
+    "set": "base",
+    "suit": "wizard",
+    "name": "Beastmaster",
+    "strength": 9,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "beast"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR28",
+    "set": "base",
+    "suit": "wizard",
+    "name": "Necromancer",
+    "strength": 3,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "leader",
+      "wizard",
+      "beast"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR29",
+    "set": "base",
+    "suit": "wizard",
+    "name": "Warlock Lord",
+    "strength": 25,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "leader",
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR30",
+    "set": "base",
+    "suit": "wizard",
+    "name": "Enchantress",
+    "strength": 5,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "land",
+      "weather",
+      "flood",
+      "flame"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR31",
+    "set": "base",
+    "suit": "leader",
+    "name": "King",
+    "strength": 8,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army"
+    ],
+    "relatedCards": [
+      "Queen"
+    ]
+  },
+  {
+    "id": "FR32",
+    "set": "base",
+    "suit": "leader",
+    "name": "Queen",
+    "strength": 6,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army"
+    ],
+    "relatedCards": [
+      "King"
+    ]
+  },
+  {
+    "id": "FR33",
+    "set": "base",
+    "suit": "leader",
+    "name": "Princess",
+    "strength": 2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "wizard",
+      "leader"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR34",
+    "set": "base",
+    "suit": "leader",
+    "name": "Warlord",
+    "strength": 4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR35",
+    "set": "base",
+    "suit": "leader",
+    "name": "Empress",
+    "strength": 15,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "leader"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR36",
+    "set": "base",
+    "suit": "beast",
+    "name": "Unicorn",
+    "strength": 9,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [
+      "Princess",
+      "Empress",
+      "Queen",
+      "Enchantress"
+    ]
+  },
+  {
+    "id": "FR37",
+    "set": "base",
+    "suit": "beast",
+    "name": "Basilisk",
+    "strength": 35,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "leader",
+      "beast"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR38",
+    "set": "base",
+    "suit": "beast",
+    "name": "Warhorse",
+    "strength": 6,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "leader",
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR39",
+    "set": "base",
+    "suit": "beast",
+    "name": "Dragon",
+    "strength": 30,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR40",
+    "set": "base",
+    "suit": "beast",
+    "name": "Hydra",
+    "strength": 12,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [
+      "Swamp"
+    ]
+  },
+  {
+    "id": "FR41",
+    "set": "base",
+    "suit": "weapon",
+    "name": "Warship",
+    "strength": 23,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "flood"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR42",
+    "set": "base",
+    "suit": "weapon",
+    "name": "Magic Wand",
+    "strength": 1,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR43",
+    "set": "base",
+    "suit": "weapon",
+    "name": "Sword of Keth",
+    "strength": 7,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "leader"
+    ],
+    "relatedCards": [
+      "Shield of Keth"
+    ]
+  },
+  {
+    "id": "FR44",
+    "set": "base",
+    "suit": "weapon",
+    "name": "Elven Longbow",
+    "strength": 3,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [
+      "Elven Archers",
+      "Warlord",
+      "Beastmaster"
+    ]
+  },
+  {
+    "id": "FR45",
+    "set": "base",
+    "suit": "weapon",
+    "name": "War Dirigible",
+    "strength": 35,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "weather"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR46",
+    "set": "base",
+    "suit": "artifact",
+    "name": "Shield of Keth",
+    "strength": 4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "leader"
+    ],
+    "relatedCards": [
+      "Sword of Keth"
+    ]
+  },
+  {
+    "id": "FR47",
+    "set": "base",
+    "suit": "artifact",
+    "name": "Gem of Order",
+    "strength": 5,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "FR48",
+    "set": "base",
+    "suit": "artifact",
+    "name": "World Tree",
+    "strength": 2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "artifact",
+      "beast",
+      "building",
+      "flame",
+      "flood",
+      "land",
+      "leader",
+      "outsider",
+      "undead",
+      "weapon",
+      "weather",
+      "wild",
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR49",
+    "set": "base",
+    "suit": "artifact",
+    "name": "Book of Changes",
+    "strength": 3,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "FR50",
+    "set": "base",
+    "suit": "artifact",
+    "name": "Protection Rune",
+    "strength": 1,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "FR51",
+    "set": "base",
+    "suit": "wild",
+    "name": "Shapeshifter",
+    "strength": 0,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [
+      "artifact",
+      "beast",
+      "leader",
+      "weapon",
+      "wizard"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR52",
+    "set": "base",
+    "suit": "wild",
+    "name": "Mirage",
+    "strength": 0,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [
+      "army",
+      "flame",
+      "flood",
+      "land",
+      "weather"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "FR53",
+    "set": "base",
+    "suit": "wild",
+    "name": "Doppelgänger",
+    "strength": 0,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "FR54",
+    "set": "base",
+    "suit": "wizard",
+    "name": "Jester",
+    "strength": 3,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "FR55",
+    "set": "base",
+    "suit": "beast",
+    "name": "Phoenix",
+    "strength": 14,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "FR55P",
+    "set": "base",
+    "suit": "beast",
+    "name": "Phoenix (Promo)",
+    "strength": 14,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "CH01",
+    "set": "cursed-hoard",
+    "suit": "building",
+    "name": "Dungeon",
+    "strength": 7,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "undead",
+      "beast",
+      "artifact"
+    ],
+    "relatedCards": [
+      "Necromancer",
+      "Warlock Lord",
+      "Demon"
+    ]
+  },
+  {
+    "id": "CH02",
+    "set": "cursed-hoard",
+    "suit": "building",
+    "name": "Castle",
+    "strength": 10,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "leader",
+      "army",
+      "land",
+      "building"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "CH03",
+    "set": "cursed-hoard",
+    "suit": "building",
+    "name": "Crypt",
+    "strength": 21,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "undead",
+      "leader"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "CH04",
+    "set": "cursed-hoard",
+    "suit": "building",
+    "name": "Chapel",
+    "strength": 2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "leader",
+      "wizard",
+      "outsider",
+      "undead"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "CH05",
+    "set": "cursed-hoard",
+    "suit": "land",
+    "name": "Garden",
+    "strength": 11,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "leader",
+      "beast",
+      "undead"
+    ],
+    "relatedCards": [
+      "Necromancer",
+      "Demon"
+    ]
+  },
+  {
+    "id": "CH06",
+    "set": "cursed-hoard",
+    "suit": "outsider",
+    "name": "Genie",
+    "strength": -50,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [
+      "Leprechaun"
+    ]
+  },
+  {
+    "id": "CH07",
+    "set": "cursed-hoard",
+    "suit": "outsider",
+    "name": "Judge",
+    "strength": 11,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "CH08",
+    "set": "cursed-hoard",
+    "suit": "outsider",
+    "name": "Angel",
+    "strength": 16,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "CH09",
+    "set": "cursed-hoard",
+    "suit": "outsider",
+    "name": "Leprechaun",
+    "strength": 20,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": []
+  },
+  {
+    "id": "CH10",
+    "set": "cursed-hoard",
+    "suit": "outsider",
+    "name": "Demon",
+    "strength": 45,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "outsider"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "CH11",
+    "set": "cursed-hoard",
+    "suit": "undead",
+    "name": "Dark Queen",
+    "strength": 10,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "land",
+      "flood",
+      "flame",
+      "weather"
+    ],
+    "relatedCards": [
+      "Unicorn"
+    ]
+  },
+  {
+    "id": "CH12",
+    "set": "cursed-hoard",
+    "suit": "undead",
+    "name": "Ghoul",
+    "strength": 8,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "wizard",
+      "leader",
+      "army",
+      "beast",
+      "undead"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "CH13",
+    "set": "cursed-hoard",
+    "suit": "undead",
+    "name": "Specter",
+    "strength": 12,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "wizard",
+      "artifact",
+      "outsider"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "CH14",
+    "set": "cursed-hoard",
+    "suit": "undead",
+    "name": "Lich",
+    "strength": 13,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "undead"
+    ],
+    "relatedCards": [
+      "Necromancer"
+    ]
+  },
+  {
+    "id": "CH15",
+    "set": "cursed-hoard",
+    "suit": "undead",
+    "name": "Death Knight",
+    "strength": 14,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "weapon",
+      "army"
+    ],
+    "relatedCards": []
+  },
+  {
+    "id": "CH16",
+    "set": "cursed-hoard",
+    "suit": "building",
+    "name": "Bell Tower",
+    "strength": 8,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "wizard",
+      "undead"
+    ],
+    "relatedCards": [],
+    "replaces": "FR03"
+  },
+  {
+    "id": "CH17",
+    "set": "cursed-hoard",
+    "suit": "flood",
+    "name": "Fountain of Life",
+    "strength": 1,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "building",
+      "weapon",
+      "flood",
+      "flame",
+      "land",
+      "weather"
+    ],
+    "relatedCards": [],
+    "replaces": "FR06"
+  },
+  {
+    "id": "CH18",
+    "set": "cursed-hoard",
+    "suit": "flood",
+    "name": "Great Flood",
+    "strength": 32,
+    "bonus": false,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "building",
+      "land",
+      "flame"
+    ],
+    "relatedCards": [
+      "Mountain",
+      "Lightning"
+    ],
+    "replaces": "FR08"
+  },
+  {
+    "id": "CH19",
+    "set": "cursed-hoard",
+    "suit": "army",
+    "name": "Rangers",
+    "strength": 5,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "land",
+      "building",
+      "army"
+    ],
+    "relatedCards": [],
+    "replaces": "FR25"
+  },
+  {
+    "id": "CH20",
+    "set": "cursed-hoard",
+    "suit": "wizard",
+    "name": "Necromancer",
+    "strength": 3,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "leader",
+      "wizard",
+      "beast",
+      "undead"
+    ],
+    "relatedCards": [],
+    "replaces": "FR28"
+  },
+  {
+    "id": "CH21",
+    "set": "cursed-hoard",
+    "suit": "artifact",
+    "name": "World Tree",
+    "strength": 2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [
+      "army",
+      "artifact",
+      "beast",
+      "building",
+      "flame",
+      "flood",
+      "land",
+      "leader",
+      "outsider",
+      "undead",
+      "weapon",
+      "weather",
+      "wild",
+      "wizard"
+    ],
+    "relatedCards": [],
+    "replaces": "FR48"
+  },
+  {
+    "id": "CH22",
+    "set": "cursed-hoard",
+    "suit": "wild",
+    "name": "Shapeshifter",
+    "strength": 0,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [
+      "artifact",
+      "beast",
+      "leader",
+      "undead",
+      "weapon",
+      "wizard"
+    ],
+    "relatedCards": [],
+    "replaces": "FR51"
+  },
+  {
+    "id": "CH23",
+    "set": "cursed-hoard",
+    "suit": "wild",
+    "name": "Mirage",
+    "strength": 0,
+    "bonus": true,
+    "penalty": false,
+    "action": true,
+    "relatedSuits": [
+      "army",
+      "building",
+      "flame",
+      "flood",
+      "land",
+      "weather"
+    ],
+    "relatedCards": [],
+    "replaces": "FR52"
+  },
+  {
+    "id": "CH24",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Spyglass",
+    "strength": -1,
+    "bonus": true,
+    "penalty": true,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH25",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Sarcophagus",
+    "strength": 5,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH26",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Blindfold",
+    "strength": 5,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH27",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Book of Prophecy",
+    "strength": -1,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH28",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Crystal Ball",
+    "strength": -1,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH29",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Market Wagon",
+    "strength": -2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH30",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Backpack",
+    "strength": -2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH31",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Shovel",
+    "strength": -2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH32",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Sealed Vault",
+    "strength": -4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH33",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Crystal Lens",
+    "strength": -2,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH34",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Larcenous Gloves",
+    "strength": -3,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH35",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Junkyard Map",
+    "strength": -3,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH36",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Winged Boots",
+    "strength": -4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH37",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Staff of Transmutation",
+    "strength": -4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH38",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Rake",
+    "strength": -4,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH39",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Treasure Chest",
+    "strength": -5,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH40",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Fishhook",
+    "strength": -6,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH41",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Repair Kit",
+    "strength": -6,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "copy"
+  },
+  {
+    "id": "CH42",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Hourglass",
+    "strength": -7,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "after-turn"
+  },
+  {
+    "id": "CH43",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Gold Mirror",
+    "strength": -8,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH44",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Cauldron",
+    "strength": -9,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH45",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Lantern",
+    "strength": -10,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "replace-turn"
+  },
+  {
+    "id": "CH46",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Portal",
+    "strength": -20,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  },
+  {
+    "id": "CH47",
+    "set": "cursed-items",
+    "suit": "cursed-item",
+    "name": "Wishing Ring",
+    "strength": -30,
+    "bonus": true,
+    "penalty": false,
+    "action": false,
+    "relatedSuits": [],
+    "relatedCards": [],
+    "timing": "any-time"
+  }
+]

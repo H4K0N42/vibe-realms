@@ -1,0 +1,15 @@
+{
+  "loadOrder": [
+    "deck.js",
+    "discard.js",
+    "hand.js",
+    "combinatorics.js"
+  ],
+  "sha256": {
+    "deck.js": "56afdc150f5ac619",
+    "discard.js": "ff3f4d9a6a022537",
+    "hand.js": "c8547072ad1b3c10",
+    "combinatorics.js": "792a7d16b22e5532"
+  },
+  "syncedAt": "2026-09-02T16:39:20.251Z"
+}

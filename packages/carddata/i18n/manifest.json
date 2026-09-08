@@ -1,0 +1,132 @@
+{
+  "generatedFrom": "calculator/i18n/Messages_*.properties",
+  "fallback": "en",
+  "totalCards": 103,
+  "locales": {
+    "cz": {
+      "named": 101,
+      "missing": [
+        "FR55",
+        "FR55P"
+      ]
+    },
+    "de": {
+      "named": 102,
+      "missing": [
+        "FR55"
+      ]
+    },
+    "en": {
+      "named": 103,
+      "missing": []
+    },
+    "en-default": {
+      "named": 103,
+      "missing": []
+    },
+    "es": {
+      "named": 101,
+      "missing": [
+        "FR55",
+        "FR55P"
+      ]
+    },
+    "fr": {
+      "named": 102,
+      "missing": [
+        "FR55P"
+      ]
+    },
+    "it": {
+      "named": 55,
+      "missing": [
+        "FR55P",
+        "CH01",
+        "CH02",
+        "CH03",
+        "CH04",
+        "CH05",
+        "CH06",
+        "CH07",
+        "CH08",
+        "CH09",
+        "CH10",
+        "CH11",
+        "CH12",
+        "CH13",
+        "CH14",
+        "CH15",
+        "CH16",
+        "CH17",
+        "CH18",
+        "CH19",
+        "CH20",
+        "CH21",
+        "CH22",
+        "CH23",
+        "CH24",
+        "CH25",
+        "CH26",
+        "CH27",
+        "CH28",
+        "CH29",
+        "CH30",
+        "CH31",
+        "CH32",
+        "CH33",
+        "CH34",
+        "CH35",
+        "CH36",
+        "CH37",
+        "CH38",
+        "CH39",
+        "CH40",
+        "CH41",
+        "CH42",
+        "CH43",
+        "CH44",
+        "CH45",
+        "CH46",
+        "CH47"
+      ]
+    },
+    "kr": {
+      "named": 103,
+      "missing": []
+    },
+    "pl": {
+      "named": 101,
+      "missing": [
+        "FR55",
+        "FR55P"
+      ]
+    },
+    "pt": {
+      "named": 102,
+      "missing": [
+        "CH46"
+      ]
+    },
+    "ru": {
+      "named": 102,
+      "missing": [
+        "FR55P"
+      ]
+    },
+    "ua": {
+      "named": 101,
+      "missing": [
+        "FR55",
+        "FR55P"
+      ]
+    },
+    "zh": {
+      "named": 103,
+      "missing": []
+    },
+    "zh_TW": {
+      "named": 103,
+      "missing": []
+    }
+  }
+}

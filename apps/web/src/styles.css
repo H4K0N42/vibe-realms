@@ -1,0 +1,411 @@
+/* Suit colours come from the calculator submodule; see scripts/sync-colours.mjs */
+@import './suits.css';
+
+/* Suit colours are ours, not upstream's: card effect text is parsed into tokens
+   at build time, so suit references are themed spans rather than injected HTML. */
+:root {
+  --bg: #14161c;
+  --panel: #1d2029;
+  --ink: #e8e6e1;
+  --muted: #8b93a7;
+  --line: #2c313d;
+  --accent: #c9a227;
+
+  /* One card size everywhere: eight fit across a hand, five across a discard
+     row. Clamped so it still works on a phone. */
+  --card-w: clamp(4.4rem, 8.6vw, 8rem);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
+.center { min-height: 100dvh; display: flex; flex-direction: column; gap: .75rem;
+          align-items: center; justify-content: center; }
+h1 { font-size: 1.4rem; margin: 0 0 .5rem; }
+h2 { font-size: 1rem; margin: 0 0 .5rem; color: var(--muted); font-weight: 600; }
+
+input, select, button {
+  font: inherit; color: inherit; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 8px; padding: .55rem .7rem;
+}
+button { cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+/* Cards are plain elements, not buttons: they are dragged, not pressed, and the
+   disabled styling made the whole table look inert. */
+.card { cursor: default; }
+button.primary { background: var(--accent); color: #1a1408; border-color: transparent; font-weight: 650; }
+.row { display: flex; gap: .5rem; }
+.code-input { width: 7rem; text-align: center; letter-spacing: .3em; text-transform: uppercase; }
+.home label { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; color: var(--muted); }
+.room-code { background: var(--panel); padding: .15rem .5rem; border-radius: 6px; letter-spacing: .25em; }
+.hint { color: var(--muted); font-size: .85rem; }
+.error { color: #e08c7d; }
+
+/* --- cards --- */
+.cards { display: flex; flex-wrap: wrap; gap: .5rem; }
+.card {
+  position: relative; width: var(--card-w, 9.5rem);
+  /* Hardcoded so a card never stretches down to fit its text: playing-card
+     proportions, and anything that does not fit is clipped. */
+  aspect-ratio: var(--card-ratio, 5 / 7);
+  overflow: hidden; text-align: left;
+  display: flex; flex-direction: column; gap: .35rem;
+  background: var(--panel); border: 1px solid var(--line); border-top-width: 4px;
+  padding: .5rem; border-radius: 10px;
+}
+.card:not(:disabled):hover { transform: translateY(-2px); }
+.card-selected { outline: 2px solid var(--accent); }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: .25rem; }
+.card-name { font-weight: 650; font-size: .85rem; }
+.card-strength { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+.card-suit { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+.card-body { font-size: .72rem; color: #cfd3dc; }
+.card-body p { margin: 0 0 .3rem; }
+.card-penalty { color: #d99b90; }
+.card-fallback { position: absolute; bottom: .3rem; right: .4rem; font-size: .6rem; color: var(--muted); }
+
+/* Text and borders use the readable "ink" variant; the filled suit chip
+   carries the calculator's exact colour. */
+.suit-land { color: var(--suit-land-ink); }
+.suit-border-land { border-top-color: var(--suit-land-ink); }
+.card-suit.suit-land { background: var(--suit-land); color: #fff; }
+.suit-flood { color: var(--suit-flood-ink); }
+.suit-border-flood { border-top-color: var(--suit-flood-ink); }
+.card-suit.suit-flood { background: var(--suit-flood); color: #fff; }
+.suit-weather { color: var(--suit-weather-ink); }
+.suit-border-weather { border-top-color: var(--suit-weather-ink); }
+.card-suit.suit-weather { background: var(--suit-weather); color: #fff; }
+.suit-flame { color: var(--suit-flame-ink); }
+.suit-border-flame { border-top-color: var(--suit-flame-ink); }
+.card-suit.suit-flame { background: var(--suit-flame); color: #fff; }
+.suit-army { color: var(--suit-army-ink); }
+.suit-border-army { border-top-color: var(--suit-army-ink); }
+.card-suit.suit-army { background: var(--suit-army); color: #fff; }
+.suit-wizard { color: var(--suit-wizard-ink); }
+.suit-border-wizard { border-top-color: var(--suit-wizard-ink); }
+.card-suit.suit-wizard { background: var(--suit-wizard); color: #fff; }
+.suit-leader { color: var(--suit-leader-ink); }
+.suit-border-leader { border-top-color: var(--suit-leader-ink); }
+.card-suit.suit-leader { background: var(--suit-leader); color: #fff; }
+.suit-beast { color: var(--suit-beast-ink); }
+.suit-border-beast { border-top-color: var(--suit-beast-ink); }
+.card-suit.suit-beast { background: var(--suit-beast); color: #fff; }
+.suit-weapon { color: var(--suit-weapon-ink); }
+.suit-border-weapon { border-top-color: var(--suit-weapon-ink); }
+.card-suit.suit-weapon { background: var(--suit-weapon); color: #fff; }
+.suit-artifact { color: var(--suit-artifact-ink); }
+.suit-border-artifact { border-top-color: var(--suit-artifact-ink); }
+.card-suit.suit-artifact { background: var(--suit-artifact); color: #fff; }
+.suit-wild { color: var(--suit-wild-ink); }
+.suit-border-wild { border-top-color: var(--suit-wild-ink); }
+.card-suit.suit-wild { background: var(--suit-wild); color: #fff; }
+.suit-building { color: var(--suit-building-ink); }
+.suit-border-building { border-top-color: var(--suit-building-ink); }
+.card-suit.suit-building { background: var(--suit-building); color: #fff; }
+.suit-outsider { color: var(--suit-outsider-ink); }
+.suit-border-outsider { border-top-color: var(--suit-outsider-ink); }
+.card-suit.suit-outsider { background: var(--suit-outsider); color: #fff; }
+.suit-undead { color: var(--suit-undead-ink); }
+.suit-border-undead { border-top-color: var(--suit-undead-ink); }
+.card-suit.suit-undead { background: var(--suit-undead); color: #fff; }
+.suit-cursed-item { color: var(--suit-cursed-item-ink); }
+.suit-border-cursed-item { border-top-color: var(--suit-cursed-item-ink); }
+.card-suit.suit-cursed-item { background: var(--suit-cursed-item); color: #fff; }
+
+/* --- table --- */
+.table-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+              border-bottom: 1px solid var(--line); padding-bottom: .6rem; margin-bottom: .8rem; }
+.seats { list-style: none; display: flex; gap: .5rem; margin: 0; padding: 0; flex-wrap: wrap; }
+.seats li { background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+            padding: .25rem .7rem; font-size: .85rem; }
+.seats li.active { border-color: var(--accent); color: var(--accent); }
+.seats li.offline { opacity: .55; }
+.count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.badge { font-size: .65rem; text-transform: uppercase; margin-left: .35rem; color: var(--muted); }
+.badge.voted { color: var(--accent); }
+
+.discard, .hand { margin-bottom: 1.2rem; }
+.hand-actions { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; }
+.confirm { display: flex; align-items: center; gap: .5rem; margin-top: .75rem;
+           background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .6rem; }
+
+.end-vote { background: #2a2230; border: 1px solid #4a3a52; border-radius: 10px;
+            padding: .8rem 1rem; margin-bottom: 1rem; }
+.end-vote p { margin: 0 0 .5rem; }
+
+.settings { border: 1px solid var(--line); border-radius: 10px; margin: 1rem 0; }
+.settings label { display: block; padding: .2rem 0; font-size: .9rem; }
+.players { list-style: none; padding: 0; }
+.players li { padding: .3rem 0; border-bottom: 1px solid var(--line); }
+
+/* --- scores --- */
+.score-block { background: var(--panel); border: 1px solid var(--line);
+               border-radius: 10px; padding: .8rem; margin-bottom: .8rem; }
+.score-block h2 { color: var(--ink); display: flex; gap: .5rem; align-items: baseline; }
+.total { margin-left: auto; font-size: 1.3rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+.score-block table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.score-block td { padding: .25rem .4rem; border-top: 1px solid var(--line); vertical-align: top; }
+.num { text-align: right; font-variant-numeric: tabular-nums; width: 3.5rem; }
+.pos { color: #8fbf7a; } .neg { color: #d99b90; }
+.effect { color: var(--muted); font-size: .72rem; }
+tr.blanked { opacity: .45; text-decoration: line-through; }
+
+@media (max-width: 640px) {
+  
+}
+
+.actions { background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; padding: .8rem; margin-bottom: 1rem; }
+.action-choice { padding: .5rem 0; border-top: 1px solid var(--line); }
+.action-choice:first-of-type { border-top: none; }
+.action-choice .row { flex-wrap: wrap; margin-top: .4rem; }
+.scoring-wait { max-width: 720px; }
+
+
+/* --- end-of-game reveal --- */
+.reveal { display: flex; flex-direction: column; min-height: 100dvh; gap: .75rem; }
+.reveal-head { text-align: center; }
+.reveal-who { margin: 0; color: var(--muted); font-size: .9rem; }
+.reveal-progress { opacity: .6; }
+.reveal-total {
+  margin: .1rem 0 0; font-size: 3.4rem; line-height: 1; font-weight: 700;
+  color: var(--accent); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 26px #c9a22733;
+}
+.reveal-total.negative { color: #d99b90; }
+
+.reveal-row { display: grid; grid-template-columns: repeat(8, var(--card-w));
+              gap: .4rem; align-items: start; justify-content: center; }
+.reveal-slot { position: relative; }
+
+/* A card turning face up. */
+@keyframes flip-in {
+  from { transform: rotateY(90deg) scale(.92); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+.just-flipped .card { animation: flip-in .34s ease-out both; }
+
+.card-back {
+  background: repeating-linear-gradient(45deg, #232733, #232733 6px, #1d212b 6px, #1d212b 12px);
+  border-style: dashed; opacity: .6;
+}
+
+
+.reveal-values { display: flex; gap: .35rem; justify-content: center; padding-top: .25rem;
+                 font-variant-numeric: tabular-nums; font-size: .85rem; }
+.reveal-values .base { color: var(--muted); }
+
+/* Floating "+15" / "BLOCKIERT" that plays whenever a new card changes this one. */
+.delta-float {
+  position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  pointer-events: none; font-weight: 700; font-size: 1.1rem;
+  animation: float-up 1.25s ease-out both;
+}
+@keyframes float-up {
+  0%   { opacity: 0; transform: translate(-50%, 12px) scale(.8); }
+  18%  { opacity: 1; transform: translate(-50%, -4px) scale(1.1); }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -34px) scale(1); }
+}
+.d-pos { color: #8fbf7a; } .d-neg { color: #d99b90; }
+.d-blank { color: #d99b90; font-size: .8rem; letter-spacing: .08em; }
+.d-unblank { color: #8fbf7a; font-size: .9rem; }
+
+.reveal-controls { display: flex; justify-content: center; }
+/* The bottom third: where the action cards get chosen. */
+.reveal-extras { margin-top: auto; min-height: 33vh; display: flex; flex-direction: column;
+                 justify-content: center; align-items: center; gap: .6rem;
+                 border-top: 1px solid var(--line); padding-top: 1rem; }
+.reveal-extras .actions { width: 100%; max-width: 720px; }
+
+/* --- drag between zones --- */
+.board { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1rem; }
+.zone-label { margin: 0 0 .4rem; font-size: .75rem; text-transform: uppercase;
+              letter-spacing: .08em; color: var(--muted); }
+
+.deck-pile { flex: 0 0 auto; }
+.deck-pile.drawable .deck-card { cursor: grab; border-color: var(--accent); }
+.deck-pile.drawable .deck-card::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 12px;
+  box-shadow: 0 0 0 2px #c9a22755, 0 0 18px #c9a22733; pointer-events: none;
+}
+
+.discard-zone, .hand-zone {
+  border: 1px dashed var(--line); border-radius: 12px; padding: .55rem;
+  transition: border-color .18s, background .18s;
+}
+.discard-zone { flex: 1 1 auto; min-width: 0; }
+.hand-zone { margin-bottom: 1rem; }
+.zone-hot { border-color: var(--accent); background: #c9a2270d; border-style: solid; }
+
+/* The card left behind while its ghost is under the pointer. */
+.is-dragging { opacity: .22; filter: grayscale(1); }
+.hand-zone .slot, .discard-zone .cards > div, .deck-card { touch-action: none; user-select: none; }
+.hand-zone .slot { transition: transform .18s cubic-bezier(.2,.8,.3,1); cursor: grab; }
+
+/* Follows the pointer; the weight comes from the engine, not from CSS. */
+.drag-ghost { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none;
+              will-change: transform; }
+.drag-ghost .card { box-shadow: 0 18px 42px #000b; transform: scale(1.05) rotate(-1.5deg);
+                    border-color: var(--accent); }
+
+/* --- reveal: relevance highlight --- */
+.reveal-slot.related .card {
+  border-color: var(--hl);
+  box-shadow: 0 0 0 2px var(--hl), 0 0 22px -2px var(--hl);
+  animation: relate-pulse .5s ease-out both;
+}
+@keyframes relate-pulse {
+  from { box-shadow: 0 0 0 2px var(--hl), 0 0 0 var(--hl); }
+  to   { box-shadow: 0 0 0 2px var(--hl), 0 0 22px -2px var(--hl); }
+}
+
+/* --- reveal: blanked = struck through, not stamped --- */
+.reveal-slot.is-blanked .card {
+  filter: grayscale(.9) brightness(.55); transition: filter .35s ease;
+}
+.strike {
+  position: absolute; left: 6%; right: 6%; top: 50%; height: 2px;
+  background: #d99b90; transform-origin: left center; transform: scaleX(0);
+  animation: strike-through .38s cubic-bezier(.4,0,.2,1) forwards;
+  box-shadow: 0 0 8px #d99b9088;
+}
+@keyframes strike-through { to { transform: scaleX(1); } }
+.blank-label {
+  position: absolute; left: 50%; top: calc(50% + .55rem); transform: translateX(-50%);
+  font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: #d99b90;
+  animation: fade-in .3s .25s both;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Suit chip: a filled badge in the calculator's own colour. */
+.card-suit {
+  display: inline-block; padding: .1rem .4rem; border-radius: 4px;
+  font-size: .62rem; letter-spacing: .07em; align-self: flex-start;
+}
+
+/* --- one row of cards ---------------------------------------------------- */
+/* Eight columns everywhere a hand is shown, so drawing a card (7 -> 8) never
+   resizes or rewraps the row: the cards simply are the width of one eighth. */
+.hand-zone .cards {
+  display: grid; grid-template-columns: repeat(8, var(--card-w));
+  gap: .4rem; justify-content: start;
+}
+/* The discard area shows all ten places it can hold. */
+.discard-row {
+  /* Ten places over two rows of five, at the same size as any other card. */
+  display: grid; grid-template-columns: repeat(5, var(--card-w));
+  gap: .35rem; justify-content: start;
+}
+.discard-row > * { min-width: 0; }
+
+/* Compact card: name, strength and suit only. Full text would be unreadable at
+   a tenth of the width, and the whole card is shown while you drag it. */
+.card-compact { --card-ratio: 5 / 2.5; gap: .15rem; padding: .35rem; }
+.card-compact .card-name { font-size: .68rem; line-height: 1.15; }
+.card-compact .card-strength { font-size: .8rem; }
+.card-compact .card-suit { font-size: .52rem; padding: .05rem .25rem; }
+
+/* An empty place in the discard area. */
+.card-empty {
+  width: var(--card-w); aspect-ratio: 5 / 7;
+  border: 1px dashed var(--line); border-radius: 10px; background: #ffffff05;
+}
+
+/* Draw pile: no caption, and the count sits quietly in the corner. */
+.deck-card {
+  width: var(--deck-w, 6.5rem); aspect-ratio: 5 / 7; border-radius: 10px;
+  position: relative; display: block;
+}
+.deck-count {
+  position: absolute; right: .35rem; bottom: .3rem;
+  font-size: .7rem; font-variant-numeric: tabular-nums; color: var(--muted);
+  background: #0006; border-radius: 5px; padding: .05rem .3rem;
+}
+
+@media (max-width: 900px) {
+  :root { --card-w: clamp(4rem, 22vw, 6rem); }
+  .hand-zone .cards { grid-template-columns: repeat(4, var(--card-w)); }
+  .reveal-row { grid-template-columns: repeat(4, var(--card-w)); }
+  .discard-row { grid-template-columns: repeat(5, var(--card-w)); }
+  .card { --card-ratio: 5 / 7.6; }
+  .board { flex-wrap: nowrap; }
+  .deck-card { --deck-w: 5rem; min-height: 6.6rem; }
+}
+
+/* --- hovering a card lights up the conditions that mention it -------------- */
+/* A continuous shimmer while the card is hovered: the text sits at its bright
+   colour throughout and a lighter band travels across it, so nothing ever drops
+   back to the resting colour mid-pass. Ending the hover does not cut it off --
+   the pass runs to completion (see useSweep). */
+.ref-sweep {
+  background-image: linear-gradient(100deg,
+    var(--ref-hot) 0%, var(--ref-hot) 44%,
+    #ffffff 50%,
+    var(--ref-hot) 56%, var(--ref-hot) 100%);
+  /* no-repeat matters: the image is wider than the element, and the default
+     `repeat` tiles it, so the band was appearing a second time near the end of
+     each pass. With one tile and 0%..100% the element stays fully covered while
+     the band crosses exactly once. */
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  animation: ref-sweep 1.5s linear infinite;
+}
+@keyframes ref-sweep {
+  from { background-position: 100% 0; }
+  to   { background-position: 0% 0; }
+}
+
+/* The suit chip is white-on-colour, so a text shimmer alone barely reads. It
+   gets a bright ring and a lift as well, which is what makes "every Land" or
+   "every Army" visible across the table at a glance. */
+.card-suit.ref-sweep {
+  --ref-c: #ffffffcc; --ref-hot: #ffffff;
+  box-shadow: 0 0 0 2px #ffffffd0, 0 0 16px 2px #ffffff70;
+  filter: saturate(1.35) brightness(1.12);
+}
+/* A card named by the hovered one: shimmer in the normal ink colour. */
+.card-name.ref-sweep { --ref-c: var(--ink); --ref-hot: #ffffff; }
+
+/* The card being hovered lifts slightly, so it is clear what is driving it. */
+.hand-zone .slot.is-hovered { transform: translateY(-6px); }
+.hand-zone .slot.is-hovered .card { border-color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* No travelling light; the reference just sits at its bright colour. */
+  .ref-sweep { animation: none; background-image: none; color: var(--ref-hot); }
+}
+
+/* Long rules text is stepped down rather than clipped by the fixed ratio. */
+.card.text-sm .card-body { font-size: .66rem; line-height: 1.28; }
+.card.text-xs .card-body { font-size: .6rem;  line-height: 1.22; }
+.card.text-xs .card-name { font-size: .78rem; }
+
+/* Whatever still does not fit fades out, so it never looks like the rule ends. */
+.card-body {
+  overflow: hidden;
+  mask-image: linear-gradient(#000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(#000 78%, transparent 100%);
+}
+
+/* The hovered card drops the ratio and grows over its neighbours, so the full
+   text is always readable somewhere. */
+.hand-zone .slot.is-hovered { z-index: 20; }
+.hand-zone .slot.is-hovered .card {
+  aspect-ratio: auto; min-height: 176px; height: auto; overflow: visible;
+  box-shadow: 0 14px 34px #000a;
+}
+.hand-zone .slot.is-hovered .card-body {
+  overflow: visible; mask-image: none; -webkit-mask-image: none;
+}

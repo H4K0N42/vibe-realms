@@ -1,0 +1,22 @@
+services:
+  vibe-realms:
+    build: .
+    image: vibe-realms:latest
+    restart: unless-stopped
+    ports:
+      # Plain HTTP. Pangolin terminates TLS and proxies to this.
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      FR_DATA_DIR: /data
+    volumes:
+      # A NAMED volume, not a bind mount. Docker initialises a fresh named
+      # volume from the image -- including /data's ownership -- so the non-root
+      # `fr` user can write. A host bind mount would arrive owned by the host
+      # user and SQLite would fail with "unable to open database file".
+      # Back up with: docker run --rm -v vibe-realms_game-data:/d -v "$PWD:/out" \
+      #                 alpine tar czf /out/vibe-realms-backup.tgz -C /d .
+      - game-data:/data
+
+volumes:
+  game-data:

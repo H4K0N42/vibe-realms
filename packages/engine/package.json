@@ -1,0 +1,27 @@
+{
+  "name": "@fr/engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Per-room node:vm wrapper around the byte-for-byte vendored Fantasy Realms scoring engine.",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "vendor"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test 'test/*.test.js'",
+    "bench": "node bench/measure.mjs",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

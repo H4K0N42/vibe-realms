@@ -1,0 +1,15 @@
+{
+  "name": "@fr/carddata",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./cards": "./data/cards.json",
+    "./provenance": "./data/cards.provenance.json",
+    "./i18n/manifest": "./i18n/manifest.json",
+    "./i18n/*": "./i18n/*.json"
+  },
+  "scripts": {
+    "regen": "node ../../scripts/extract-cards.mjs && node ../../scripts/sync-i18n.mjs"
+  }
+}

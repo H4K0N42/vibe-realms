@@ -1,0 +1,24 @@
+{
+  "name": "@fr/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/src/index.js",
+    "dev": "node --watch src/index.ts",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@fr/shared": "*",
+    "ws": "^8.18.0",
+    "@fr/engine": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.7.0"
+  }
+}
