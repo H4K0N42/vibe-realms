@@ -30,8 +30,13 @@ export type ClientMessage =
 export type ServerMessage =
   | { t: 'joined'; playerId: string; resumeToken: string; roomCode: string }
   | { t: 'state'; state: PublicGameState; settings: RoomSettings }
-  /** Your own hand. Never broadcast. */
-  | { t: 'hand'; cards: CardId[] }
+  /**
+   * Your own hand. Never broadcast.
+   * `blanked` is which of those cards are currently blanked by the rest of the
+   * hand -- shown permanently, so you can see a dead card without waiting for
+   * the scoring. Private, like the hand itself.
+   */
+  | { t: 'hand'; cards: CardId[]; blanked: CardId[] }
   | { t: 'scores'; scores: PlayerScore[]; reason: 'discardPile' | 'earlyVote' }
   | { t: 'error'; code: ErrorCode; message: string };
 

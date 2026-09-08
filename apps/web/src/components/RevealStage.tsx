@@ -115,13 +115,7 @@ export function RevealStage({ reveal, state, dict, myPlayerId, send }: Props) {
               className={`reveal-slot${i === latest ? ' just-flipped' : ''}${related ? ' related' : ''}${row?.blanked ? ' is-blanked' : ''}`}
               style={related ? ({ ['--hl' as string]: `var(--suit-${hlSuit}-ink)` } as React.CSSProperties) : undefined}
             >
-              <Card id={step.cardId} dict={dict} />
-              {row?.blanked ? (
-                <>
-                  <span className="strike" />
-                  <span className="blank-label">blockiert</span>
-                </>
-              ) : null}
+              <Card id={step.cardId} dict={dict} blanked={row?.blanked} />
               <div className="reveal-values">
                 <span className="base">{row?.base ?? cardsById[step.cardId]?.strength ?? 0}</span>
                 {row && row.bonus ? <span className="pos">+{row.bonus}</span> : null}

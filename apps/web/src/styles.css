@@ -4,16 +4,32 @@
 /* Suit colours are ours, not upstream's: card effect text is parsed into tokens
    at build time, so suit references are themed spans rather than injected HTML. */
 :root {
-  --bg: #14161c;
-  --panel: #1d2029;
-  --ink: #e8e6e1;
-  --muted: #8b93a7;
-  --line: #2c313d;
-  --accent: #c9a227;
+  /* Chrome taken from T3 Code's own stylesheet, dark theme:
+     github.com/pingdotgg/t3code @ eb11506 -- apps/web/src/index.css
+       --background   neutral-950            oklch(14.5% 0 0)
+       --foreground   neutral-100            oklch(97% 0 0)
+       --card         background 97% + white
+       --muted-fg     neutral-500 90% + white
+       --border       white 6%      --input  white 8%
+       --primary      oklch(0.571 0.21 264)
+       --error        red-500 90% + white
+       --radius       0.625rem
+     Written in the same notation rather than converted, so these are the very
+     same colours. Suit colours are NOT from here -- see suits.css. */
+  --bg: oklch(14.5% 0 0);
+  --ink: oklch(97% 0 0);
+  --panel: color-mix(in srgb, var(--bg) 97%, #fff);
+  --muted: color-mix(in srgb, oklch(55.6% 0 0) 90%, #fff);
+  --line: rgb(255 255 255 / 6%);
+  --input-line: rgb(255 255 255 / 8%);
+  --accent: oklch(0.571 0.21 264);
+  --accent-ink: #fff;
+  --danger: color-mix(in srgb, oklch(63.7% 0.237 25.331) 90%, #fff);
+  --radius: 0.625rem;
 
   /* One card size everywhere: eight fit across a hand, five across a discard
      row. Clamped so it still works on a phone. */
-  --card-w: clamp(4.4rem, 8.6vw, 8rem);
+  --card-w: clamp(4.6rem, 11vw, 9.2rem);
 }
 
 * { box-sizing: border-box; }
@@ -26,7 +42,8 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
+/* Wide enough for eight cards across a hand at the size above. */
+main { padding: 1rem; max-width: 1420px; margin: 0 auto; }
 .center { min-height: 100dvh; display: flex; flex-direction: column; gap: .75rem;
           align-items: center; justify-content: center; }
 h1 { font-size: 1.4rem; margin: 0 0 .5rem; }
@@ -34,20 +51,20 @@ h2 { font-size: 1rem; margin: 0 0 .5rem; color: var(--muted); font-weight: 600; 
 
 input, select, button {
   font: inherit; color: inherit; background: var(--panel);
-  border: 1px solid var(--line); border-radius: 8px; padding: .55rem .7rem;
+  border: 1px solid var(--input-line); border-radius: var(--radius); padding: .55rem .7rem;
 }
 button { cursor: pointer; }
 button:disabled { opacity: .45; cursor: not-allowed; }
 /* Cards are plain elements, not buttons: they are dragged, not pressed, and the
    disabled styling made the whole table look inert. */
 .card { cursor: default; }
-button.primary { background: var(--accent); color: #1a1408; border-color: transparent; font-weight: 650; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 650; }
 .row { display: flex; gap: .5rem; }
 .code-input { width: 7rem; text-align: center; letter-spacing: .3em; text-transform: uppercase; }
 .home label { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; color: var(--muted); }
 .room-code { background: var(--panel); padding: .15rem .5rem; border-radius: 6px; letter-spacing: .25em; }
 .hint { color: var(--muted); font-size: .85rem; }
-.error { color: #e08c7d; }
+.error { color: var(--danger); }
 
 /* --- cards --- */
 .cards { display: flex; flex-wrap: wrap; gap: .5rem; }
@@ -178,7 +195,7 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .reveal-total {
   margin: .1rem 0 0; font-size: 3.4rem; line-height: 1; font-weight: 700;
   color: var(--accent); font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 26px #c9a22733;
+  text-shadow: 0 0 26px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 .reveal-total.negative { color: #d99b90; }
 
@@ -236,7 +253,8 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .deck-pile.drawable .deck-card { cursor: grab; border-color: var(--accent); }
 .deck-pile.drawable .deck-card::after {
   content: ''; position: absolute; inset: -3px; border-radius: 12px;
-  box-shadow: 0 0 0 2px #c9a22755, 0 0 18px #c9a22733; pointer-events: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent),
+              0 0 18px color-mix(in srgb, var(--accent) 25%, transparent); pointer-events: none;
 }
 
 .discard-zone, .hand-zone {
@@ -245,7 +263,9 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 }
 .discard-zone { flex: 1 1 auto; min-width: 0; }
 .hand-zone { margin-bottom: 1rem; }
-.zone-hot { border-color: var(--accent); background: #c9a2270d; border-style: solid; }
+.zone-hot { border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 7%, transparent);
+            border-style: solid; }
 
 /* The card left behind while its ghost is under the pointer. */
 .is-dragging { opacity: .22; filter: grayscale(1); }
@@ -270,9 +290,17 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 }
 
 /* --- reveal: blanked = struck through, not stamped --- */
-.reveal-slot.is-blanked .card {
-  filter: grayscale(.9) brightness(.55); transition: filter .35s ease;
+/* Blanked: the card itself goes red, in the same treatment during play and
+   during the reveal. Greyscale was the old look and would drain exactly the
+   colour we are adding, so it is gone. */
+.card-blanked {
+  background: color-mix(in srgb, var(--danger) 22%, var(--panel));
+  border-color: color-mix(in srgb, var(--danger) 70%, transparent);
+  transition: background .35s ease, border-color .35s ease;
 }
+.card-blanked .card-body,
+.card-blanked .card-name,
+.card-blanked .card-strength { opacity: .55; }
 .strike {
   position: absolute; left: 6%; right: 6%; top: 50%; height: 2px;
   background: #d99b90; transform-origin: left center; transform: scaleX(0);
@@ -333,7 +361,7 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 }
 
 @media (max-width: 900px) {
-  :root { --card-w: clamp(4rem, 22vw, 6rem); }
+  :root { --card-w: clamp(4.2rem, 22vw, 6.5rem); }
   .hand-zone .cards { grid-template-columns: repeat(4, var(--card-w)); }
   .reveal-row { grid-template-columns: repeat(4, var(--card-w)); }
   .discard-row { grid-template-columns: repeat(5, var(--card-w)); }
@@ -348,10 +376,16 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
    back to the resting colour mid-pass. Ending the hover does not cut it off --
    the pass runs to completion (see useSweep). */
 .ref-sweep {
+  /* Base is the RESTING colour, not the lit one: with the bright colour as the
+     base the whole text jumped brighter the moment the sweep started and dropped
+     back when it ended. Only the travelling band is brighter now, so switching
+     it on and off is invisible and the light is the only thing that moves. */
   background-image: linear-gradient(100deg,
-    var(--ref-hot) 0%, var(--ref-hot) 44%,
+    var(--ref-c) 0%, var(--ref-c) 38%,
+    var(--ref-hot) 46%,
     #ffffff 50%,
-    var(--ref-hot) 56%, var(--ref-hot) 100%);
+    var(--ref-hot) 54%,
+    var(--ref-c) 62%, var(--ref-c) 100%);
   /* no-repeat matters: the image is wider than the element, and the default
      `repeat` tiles it, so the band was appearing a second time near the end of
      each pass. With one tile and 0%..100% the element stays fully covered while
@@ -367,13 +401,18 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
   to   { background-position: 0% 0; }
 }
 
-/* The suit chip is white-on-colour, so a text shimmer alone barely reads. It
-   gets a bright ring and a lift as well, which is what makes "every Land" or
-   "every Army" visible across the table at a glance. */
+/* The chip is white on a filled colour: there is nothing brighter than white to
+   sweep with, and tinting its text would only make it darker. It pulses its ring
+   instead, on the same 1.5s beat so it stays in step with the text sweeps. */
 .card-suit.ref-sweep {
-  --ref-c: #ffffffcc; --ref-hot: #ffffff;
-  box-shadow: 0 0 0 2px #ffffffd0, 0 0 16px 2px #ffffff70;
-  filter: saturate(1.35) brightness(1.12);
+  background-image: none;
+  color: #fff;
+  animation: ref-chip-pulse 1.5s ease-in-out infinite;
+}
+@keyframes ref-chip-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px #ffffff55, 0 0 6px 0 #ffffff30; filter: none; }
+  50%      { box-shadow: 0 0 0 2px #ffffffe0, 0 0 18px 3px #ffffff80;
+             filter: saturate(1.4) brightness(1.15); }
 }
 /* A card named by the hovered one: shimmer in the normal ink colour. */
 .card-name.ref-sweep { --ref-c: var(--ink); --ref-hot: #ffffff; }
@@ -408,4 +447,13 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 }
 .hand-zone .slot.is-hovered .card-body {
   overflow: visible; mask-image: none; -webkit-mask-image: none;
+}
+
+/* --- what a card hurts ---------------------------------------------------- */
+/* Hovering Blizzard ("BLANKS all Floods") turns every Flood on the table red,
+   in T3 Code's destructive colour, so damage reads differently from help. */
+.card.card-harmed {
+  background: color-mix(in srgb, var(--danger) 15%, var(--panel));
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  transition: background .3s ease, border-color .3s ease;
 }

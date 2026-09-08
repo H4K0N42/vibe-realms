@@ -15,10 +15,12 @@ interface Props {
   compact?: boolean;
   /** Hovered card elsewhere on the table; references to it light up here. */
   match?: TextMatch | null;
+  /** Currently blanked: shown struck through and red. */
+  blanked?: boolean;
   onClick?: (id: CardId) => void;
 }
 
-export function Card({ id, dict, selected, dragging, compact, match, onClick }: Props) {
+export function Card({ id, dict, selected, dragging, compact, match, blanked, onClick }: Props) {
   const def = cardsById[id];
   const text = dict.card(id);
   const suit = def?.suit ?? 'wild';
@@ -40,10 +42,12 @@ export function Card({ id, dict, selected, dragging, compact, match, onClick }: 
   // ...and the other way round: does the hovered card's text mention this one?
   // "+20 for each Army" should light up the word ARMY on every Army card.
   const chipLit = !!match && match.refSuits.has(suit);
+  // Is this card damaged by the hovered one? Straight from the engine.
+  const harmed = !!match && match.harms.has(id);
   // Compared on upstream's English name: that is what relatedCards holds, and
   // it is the engine's identity key regardless of display language.
   const nameLit = !!match && !!def && match.refCardNames.has(def.name);
-  const lit = textLit || chipLit || nameLit;
+  const lit = textLit || chipLit || nameLit || harmed;
   const { sweeping, settle } = useSweep(lit);
 
   // A fixed aspect ratio means long rules text would be clipped (Phoenix is the
@@ -60,22 +64,32 @@ export function Card({ id, dict, selected, dragging, compact, match, onClick }: 
 
   return (
     <div
-      className={`card suit-border-${suit}${selected ? ' card-selected' : ''}${dragging ? ' card-dragging' : ''}${compact ? ' card-compact' : ''}${compact ? '' : density}`}
+      className={`card suit-border-${suit}${selected ? ' card-selected' : ''}${dragging ? ' card-dragging' : ''}${compact ? ' card-compact' : ''}${compact ? '' : density}${harmed && sweeping ? ' card-harmed' : ''}${blanked ? ' card-blanked' : ''}`}
       onClick={onClick ? () => onClick(id) : undefined}
       // animationiteration bubbles, so one handler on the card covers every
       // highlighted part of it -- rules text, suit chip and name alike. They
       // start together and stay in step.
       onAnimationIteration={(e) => {
-        if (e.animationName === 'ref-sweep') settle();
+        // Text sweeps and the chip pulse both count: a card may be lit by only
+        // one of them, and either finishing a pass is a clean place to stop.
+        if (e.animationName.startsWith('ref-')) settle();
       }}
     >
       <header className="card-head">
-        <span className={`card-name${nameLit && sweeping ? ' ref-sweep' : ''}`}>{text.name}</span>
+        <span className={`card-name${nameLit && sweeping ? ' ref-sweep' : ''}`}>
+          {text.name}
+        </span>
         <span className="card-strength">{def?.strength ?? '?'}</span>
       </header>
       <div className={`card-suit suit-${suit}${chipLit && sweeping ? ' ref-sweep' : ''}`}>
         {dict.ui(`suit.${suit}`, suit)}
       </div>
+      {blanked ? (
+        <>
+          <span className="strike" />
+          <span className="blank-label">blockiert</span>
+        </>
+      ) : null}
       {compact ? null : (
         <div className="card-body">
           {text.bonus ? (

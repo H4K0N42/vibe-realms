@@ -9,6 +9,8 @@ export interface GameConnection {
   state: PublicGameState | null;
   settings: RoomSettings | null;
   hand: string[];
+  /** Cards in your hand that are currently blanked by the rest of it. */
+  blanked: string[];
   scores: { scores: PlayerScore[]; reason: 'discardPile' | 'earlyVote' } | null;
   playerId: string | null;
   error: string | null;
@@ -23,6 +25,7 @@ export function useGame(roomCode: string | null, nickname: string): GameConnecti
   const [state, setState] = useState<PublicGameState | null>(null);
   const [settings, setSettings] = useState<RoomSettings | null>(null);
   const [hand, setHand] = useState<string[]>([]);
+  const [blanked, setBlanked] = useState<string[]>([]);
   const [scores, setScores] = useState<GameConnection['scores']>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +60,7 @@ export function useGame(roomCode: string | null, nickname: string): GameConnecti
           break;
         case 'hand':
           setHand(message.cards);
+          setBlanked(message.blanked ?? []);
           break;
         case 'scores':
           setScores({ scores: message.scores, reason: message.reason });
@@ -76,5 +80,5 @@ export function useGame(roomCode: string | null, nickname: string): GameConnecti
     if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(message));
   }, []);
 
-  return { status, state, settings, hand, scores, playerId, error, send };
+  return { status, state, settings, hand, blanked, scores, playerId, error, send };
 }

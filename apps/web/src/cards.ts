@@ -2,6 +2,7 @@
 // bundle: the UI renders instantly and the optional score preview needs no round
 // trip. The shuffled deck and other players' hands stay on the server.
 import cards from '@fr/carddata/cards';
+import harm from '@fr/carddata/harm';
 
 export interface WebCardDef {
   id: string;
@@ -25,6 +26,14 @@ export const allCards = cards as WebCardDef[];
 export const cardsById: Record<string, WebCardDef> = Object.fromEntries(
   allCards.map((c) => [c.id, c]),
 );
+
+/**
+ * Which cards each card damages, worked out by scoring pairs against the real
+ * engine (scripts/compute-harm.mjs) rather than read off the rules text.
+ * Text cannot tell "BLANKS all Floods" from "BLANKS all cards EXCEPT Flames":
+ * the second names the survivors, and guessing gets it visibly wrong.
+ */
+export const harmedBy: Record<string, string[]> = harm as Record<string, string[]>;
 
 /**
  * Does `other` matter to `subject`? Upstream records these links so its own UI

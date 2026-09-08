@@ -467,3 +467,36 @@ describe('running total reacts to action choices', () => {
     m.disposeAll();
   });
 });
+
+describe('blanked cards are reported live', () => {
+  it('tells a player which of their own cards are dead, and nobody else', () => {
+    // Fake engine: FR13 (Smoke) is blanked unless a Flame is present.
+    const engine = (): RoomEngineHandle => ({
+      ...fakeEngine(),
+      scoreHand: (hand) => ({
+        total: 0,
+        breakdown: hand.map((cardId) => ({
+          cardId, base: 10, bonus: 0, penalty: 0,
+          blanked: cardId === 'FR13' && !hand.includes('FR16'),
+        })),
+      }),
+    });
+    const m = new RoomManager(store, { now: () => now, rand: () => 0.5, makeEngine: engine });
+    const code = m.createRoom();
+    const a = new FakeConn();
+    const b = new FakeConn();
+    m.handle(a, { t: 'join', roomCode: code, nickname: 'a' });
+    m.handle(b, { t: 'join', roomCode: code, nickname: 'b' });
+    m.handle(a, { t: 'start' });
+
+    for (const conn of [a, b]) {
+      const own = conn.last('hand')!;
+      const expected = own.cards.includes('FR13') && !own.cards.includes('FR16') ? ['FR13'] : [];
+      assert.deepEqual(own.blanked, expected, 'blanked matches this player\'s own hand');
+    }
+    // It rides on the private hand message, so it never reaches anyone else.
+    const broadcast = JSON.stringify(a.received.filter((msg) => msg.t !== 'hand'));
+    assert.ok(!broadcast.includes('blanked'));
+    m.disposeAll();
+  });
+});

@@ -6,7 +6,7 @@ import { Card } from './components/Card.tsx';
 import { RevealStage } from './components/RevealStage.tsx';
 import { useDragEngine, type DragState, type DropResult } from './dragEngine.ts';
 import { CardTextView } from './components/CardText.tsx';
-import { cardsById } from './cards.ts';
+import { allCards, cardsById, harmedBy } from './cards.ts';
 import { PRIMARY_LOCALES, useDictionary, type Dictionary } from './i18n.ts';
 import { useGame } from './useGame.ts';
 
@@ -38,6 +38,12 @@ function Home({ onEnter, locale, setLocale }: {
     onEnter(roomCode.trim().toUpperCase(), name.trim());
   };
 
+  // Any code at all means the player means to join, even a partial one -- the
+  // button says so straight away and only unlocks once the code is complete.
+  const joining = code.trim().length > 0;
+  const blocked = !name.trim() || busy || (joining && code.trim().length < 4);
+  const act = () => { if (joining) enter(code); else void create(); };
+
   const create = async () => {
     setBusy(true);
     try {
@@ -56,15 +62,14 @@ function Home({ onEnter, locale, setLocale }: {
         Name
         <input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} placeholder="Hagen" />
       </label>
-      <div className="row">
-        <input className="code-input" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
-               maxLength={4} placeholder="CODE" aria-label="Room code" />
-        <button disabled={!name.trim() || code.trim().length < 4} onClick={() => enter(code)}>
-          Beitreten
-        </button>
-      </div>
-      <button className="primary" disabled={!name.trim() || busy} onClick={create}>
-        Neues Spiel
+      <input className="code-input" value={code} maxLength={4}
+             onChange={(e) => setCode(e.target.value.toUpperCase())}
+             onKeyDown={(e) => { if (e.key === 'Enter' && !blocked) act(); }}
+             placeholder="CODE" aria-label="Room code" />
+      {/* One button. Typing a code turns "new game" into "join": the two are
+          never both relevant, and having both invited picking the wrong one. */}
+      <button className="primary" disabled={blocked} onClick={act}>
+        {joining ? 'Beitreten' : 'Neues Spiel'}
       </button>
       <select value={locale} onChange={(e) => setLocale(e.target.value)} aria-label="Language">
         {PRIMARY_LOCALES.map((l) => <option key={l} value={l}>{l.toUpperCase()}</option>)}
@@ -125,14 +130,12 @@ function Room({ code, nickname, dict, locale, setLocale }: {
     if (!hovered) return null;
     const def = cardsById[hovered];
     if (!def) return null;
+    const text = dict.card(hovered);
     return {
       suit: def.suit,
-      name: dict.card(hovered).name,
-      // The other direction: hovering "+20 for each Army" lights up the word
-      // ARMY on every Army card. These come from the card data rather than the
-      // text, because a named card is coloured by its suit -- "Bell Tower" is
-      // painted as a Land, and reading suits off the text would light up every
-      // Land when only that one card is meant.
+      name: text.name,
+      // The engine's verdict on what this card damages -- see cards.ts.
+      harms: new Set(harmedBy[hovered] ?? []),
       refSuits: new Set(def.relatedSuits),
       refCardNames: new Set(def.relatedCards),
     };
@@ -244,7 +247,7 @@ function Room({ code, nickname, dict, locale, setLocale }: {
                  onPointerLeave={() => setHovered((h) => (h === id ? null : h))}>
               {/* The hovered card is matched against itself as well: "+15 for
                   each other Land" should light up LAND on the card saying it. */}
-              <Card id={id} dict={dict} match={match} />
+              <Card id={id} dict={dict} match={match} blanked={game.blanked.includes(id)} />
             </div>
           ))}
         </div>

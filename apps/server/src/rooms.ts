@@ -304,7 +304,28 @@ export class RoomManager {
     for (const conn of this.#connections.get(room.state.code) ?? []) {
       conn.send({ t: 'state', state: pub, settings: room.state.settings });
       const player = room.state.players.find((p) => p.id === conn.playerId);
-      if (player) conn.send({ t: 'hand', cards: [...player.hand] });
+      if (player) {
+        conn.send({ t: 'hand', cards: [...player.hand], blanked: this.#blankedIn(room, player) });
+      }
+    }
+  }
+
+  /**
+   * Which of a player's own cards are dead right now. Cheap (one scoring) and
+   * private: it only ever goes to the player holding them.
+   */
+  #blankedIn(room: LiveRoom, player: { hand: string[]; cursedItems: string[] }): string[] {
+    if (!room.engine || player.hand.length === 0) return [];
+    try {
+      const { breakdown } = room.engine.scoreHand(
+        [...player.hand, ...player.cursedItems],
+        room.state.discard,
+        {},
+      );
+      return breakdown.filter((r) => r.blanked).map((r) => r.cardId);
+    } catch {
+      // A hand the engine will not score yet is simply not annotated.
+      return [];
     }
   }
 

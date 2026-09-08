@@ -7,7 +7,8 @@
     "./cards": "./data/cards.json",
     "./provenance": "./data/cards.provenance.json",
     "./i18n/manifest": "./i18n/manifest.json",
-    "./i18n/*": "./i18n/*.json"
+    "./i18n/*": "./i18n/*.json",
+    "./harm": "./data/harm.json"
   },
   "scripts": {
     "regen": "node ../../scripts/extract-cards.mjs && node ../../scripts/sync-i18n.mjs"

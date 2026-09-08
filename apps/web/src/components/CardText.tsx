@@ -15,6 +15,8 @@ export interface TextMatch {
   refSuits: Set<string>;
   /** Cards it names, by upstream's English name (the engine's identity key). */
   refCardNames: Set<string>;
+  /** Card ids this card damages, per the engine (see cards.ts). */
+  harms: Set<string>;
 }
 
 /**

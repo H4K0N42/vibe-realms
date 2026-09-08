@@ -13,7 +13,9 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const css = readFileSync(join(root, 'calculator', 'css', 'style.css'), 'utf8');
 
-const BACKGROUND = '#1d2029'; // --panel: what suit text actually sits on
+// T3 Code's dark --card: neutral-950 mixed 97% with white. Resolved to hex
+// here so the contrast maths stays plain sRGB arithmetic.
+const BACKGROUND = '#0f0f0f';
 const SUITS = [
   'land', 'flood', 'weather', 'flame', 'army', 'wizard', 'leader', 'beast',
   'weapon', 'artifact', 'wild', 'building', 'outsider', 'undead', 'cursed-item',
