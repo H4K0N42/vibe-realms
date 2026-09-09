@@ -239,11 +239,58 @@ not fire on touch devices and this gets played on phones. Listeners sit on the
 window while a card is held, since a drag crosses zones and leaves the element
 it started on.
 
-The feel is modelled on moving an app window on iOS: a card resists until it is
-either held for ~190ms or moved ~16px, then breaks loose. On breaking loose the
-grab point eases to the card's middle over ~170ms, so the card visibly snaps
-under the pointer instead of jumping, and it then follows at 26% catch-up per
-frame, which reads as weight rather than a rigidly attached cursor.
+The feel is modelled on moving something around on iOS: a card resists until it
+is either held for ~190ms or moved ~16px, then breaks loose.
+
+After that it is springs, not tweens. Position, lift and the flight home are
+each a damped spring integrated against real elapsed time, in sub-steps of
+1/240s so a long frame cannot make one explode. Damping is written as a fraction
+of critical (0.82 while following, exactly 1 while landing), which settles in
+about 150ms with an overshoot too small to see: snappy rather than springy. The
+earlier "move 26% of the remaining distance each frame" was neither, and it
+settled twice as fast on a 120Hz screen as on a 60Hz one.
+
+The spring aims at the pointer with the card centred on it, so breaking loose
+also gathers the card under the hand that picked it up. It is the resulting lag
+that produces the rest of the feel for free: the card trails a fast hand, and
+its tilt is that lag, up to 9 degrees at 100px behind, straight again at rest.
+
+**The magnet.** While a card is over somewhere it could land, its target is
+blended towards the exact place it would occupy, by up to 55%, ramped with a
+smoothstep so the pull has no edge to it. Reach is a multiple of the card's own
+width rather than a number of pixels, so it scales with the layout: 1.5x for a
+gap in the hand, which is under the pointer anyway and only wants a nudge, and
+2.5x for the discard area, which is one destination for a whole corner of the
+table. The place itself is measured off the live layout rather than calculated:
+in the hand it is literally the faded card sitting in the previewed order, so
+the magnet cannot disagree with what the row is showing.
+
+**Letting go.** The move is reported to the server immediately; waiting on an
+animation for it is what makes an interface feel slow. The ghost then flies to
+where the card actually went and fades out onto it over ~220ms, and the card it
+came from stays faded for that long so the two cross over rather than both being
+visible at once. A refused drop flies back to where it was picked up instead.
+
+**Making room.** The hand is a grid, so React rearranging it moves every card
+between cells in one paint and no CSS transition can catch that. `flip.ts`
+measures each card before and after and animates the difference away (the FLIP
+technique), with Web Animations rather than transitions so it starts reliably
+without a forced reflow. Three details matter:
+
+- A card already in flight is measured for how far it has been carried, and that
+  is added back in, otherwise every crossing compounds the error until the row
+  is millions of pixels off screen.
+- Everything that hit tests the row asks `layoutBox()` rather than
+  `getBoundingClientRect()`, so it sees the cells and not the slide in progress.
+  Deciding the arrangement from drawn positions feeds the row's own animation
+  back into its answer: wiggle a card across a boundary and the same pointer
+  position lands in different cells depending on how far the neighbours happen
+  to have slid, which reads as the row giving up on following you.
+- The card being dragged is left out of the sliding entirely, since the ghost is
+  what moves and its gap has to hold still.
+
+Under `prefers-reduced-motion` the card is simply placed at the pointer, with no
+spring, tilt, lift, flight home, or sliding neighbours.
 
 Note this replaces the old confirm-before-discard step: the drag gesture is
 deliberate enough on its own, and a confirmation bar in the middle of a drag

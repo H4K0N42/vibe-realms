@@ -1,5 +1,5 @@
 import {
-  useCallback, useEffect, useMemo, useState,
+  useCallback, useEffect, useMemo, useRef, useState,
   type ComponentProps, type Dispatch, type PointerEvent as ReactPointerEvent,
   type SetStateAction,
 } from 'react';
@@ -10,6 +10,7 @@ import { Card } from './components/Card.tsx';
 import { CardOverlay } from './components/CardOverlay.tsx';
 import { RevealStage } from './components/RevealStage.tsx';
 import { useDragEngine, type DragState, type DropResult, type Zone } from './dragEngine.ts';
+import { useFlipRow } from './flip.ts';
 import { CardTextView } from './components/CardText.tsx';
 import { cardsById, harmedBy } from './cards.ts';
 import { PRIMARY_LOCALES, useDictionary, type Dictionary } from './i18n.ts';
@@ -238,6 +239,19 @@ function Room({ code, nickname, dict, locale, setLocale, onLeave }: {
 
   const { drag, begin } = useDragEngine(handleDrop);
 
+  // Preview of where a dragged hand card would land, and the cards it displaces
+  // sliding out of its way rather than blinking into their new cells, which is
+  // the whole reason the preview is worth having. Both sit above the early
+  // returns below: a hook that only some phases reach is not a hook.
+  const shown = (() => {
+    if (!drag || drag.from !== 'hand' || drag.over !== 'hand' || drag.overIndex === null) return order;
+    const without = order.filter((c) => c !== drag.cardId);
+    const at = Math.min(drag.overIndex, without.length);
+    return [...without.slice(0, at), drag.cardId!, ...without.slice(at)];
+  })();
+  const handRow = useRef<HTMLDivElement>(null);
+  useFlipRow(handRow, shown.join());
+
   // What the hovered card looks like to every other card's rules text: its suit,
   // and its name in the current language (that is how references are written).
   const match = useMemo(() => {
@@ -311,13 +325,6 @@ function Room({ code, nickname, dict, locale, setLocale, onLeave }: {
     );
   }
 
-  // Preview of where a dragged hand card would land.
-  const shown = (() => {
-    if (!drag || drag.from !== 'hand' || drag.over !== 'hand' || drag.overIndex === null) return order;
-    const without = order.filter((c) => c !== drag.cardId);
-    const at = Math.min(drag.overIndex, without.length);
-    return [...without.slice(0, at), drag.cardId!, ...without.slice(at)];
-  })();
 
   const turnHolder = game.state?.players.find((p) => p.id === game.state?.turn);
   const discardCount = game.state?.discard.length ?? 0;
@@ -394,7 +401,7 @@ function Room({ code, nickname, dict, locale, setLocale, onLeave }: {
 
         <section className={`hand-zone${drag && drag.from !== 'hand' && drag.over === 'hand' ? ' zone-hot' : ''}`}
                  data-zone="hand">
-          <div className="cards">
+          <div className="cards" ref={handRow}>
             {shown.map((id, i) => (
               <CardSlot key={id} id={id} zone="hand" handSlot dict={dict} match={match}
                         begin={begin} drag={drag}
@@ -444,6 +451,9 @@ function CardSlot({
 }) {
   const def = cardsById[id];
   const text = dict.card(id);
+  // Held under the pointer right now. It stays faded through the flight home
+  // too, so the ghost fades out onto it rather than next to a second copy.
+  const dragged = drag?.cardId === id && drag.lifted;
   const suitName = dict.ui(`suit.${def?.suit ?? 'wild'}`, def?.suit ?? '');
   const aria = dict.t(blanked ? 'card.ariaBlanked' : 'card.aria', {
     name: text.name, strength: def?.strength ?? '?', suit: suitName,
@@ -452,10 +462,18 @@ function CardSlot({
   return (
     <div
       {...(handSlot ? { 'data-hand-slot': true } : {})}
+      // Not while it is being dragged: the ghost is what moves then, this is
+      // only the gap it will drop into, and sliding an invisible card around
+      // would also mean the magnet below measured a moving target.
+      {...(dragged ? {} : { 'data-flip-id': id })}
+      // The gap the ghost is being pulled towards: the engine reads this rather
+      // than working out where the card would land, so the magnet and the row
+      // can never disagree about it.
+      {...(dragged ? { 'data-drag-placeholder': true } : {})}
       role="button"
       tabIndex={0}
       aria-label={aria}
-      className={`slot${drag?.cardId === id && drag.lifted ? ' is-dragging' : ''}${hovered === id ? ' is-hovered' : ''}`}
+      className={`slot${dragged ? ' is-dragging' : ''}${hovered === id ? ' is-hovered' : ''}`}
       onPointerDown={begin ? begin(id, zone) : undefined}
       onPointerEnter={() => setHovered(id)}
       onPointerLeave={() => setHovered((h) => (h === id ? null : h))}
@@ -480,8 +498,16 @@ function CardSlot({
 /** The card that follows the pointer while it is held. */
 function DragGhost({ drag, dict }: { drag: DragState; dict: Dictionary }) {
   return (
-    <div className="drag-ghost"
-         style={{ transform: `translate3d(${drag.x}px, ${drag.y}px, 0)`, width: drag.width }}>
+    <div className={`drag-ghost${drag.settling ? ' is-landing' : ''}`}
+         style={{
+           // Every part of this is a spring output, so the card lifts, leans
+           // into the movement and lands as one motion rather than as a set of
+           // CSS animations that each have their own idea of the timing.
+           transform: `translate3d(${drag.x}px, ${drag.y}px, 0)` +
+                      ` rotate(${drag.tilt.toFixed(2)}deg) scale(${drag.scale.toFixed(3)})`,
+           width: drag.width,
+           opacity: drag.opacity,
+         }}>
       {drag.cardId
         ? <Card id={drag.cardId} dict={dict} dragging />
         : <div className="card card-back" style={{ height: drag.height }} />}

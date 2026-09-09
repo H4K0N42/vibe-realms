@@ -319,16 +319,28 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
             background: color-mix(in srgb, var(--accent) 7%, transparent);
             border-style: solid; }
 
-/* The card left behind while its ghost is under the pointer. */
-.is-dragging { opacity: .22; filter: grayscale(1); }
+/* The card left behind while its ghost is under the pointer. It stays like this
+   through the flight home as well, and the ghost fades out onto it. */
+.is-dragging { opacity: .22; filter: grayscale(1); transition: opacity .18s ease; }
 .slot, .deck-card { touch-action: none; user-select: none; }
-.slot { transition: transform .18s cubic-bezier(.2,.8,.3,1); cursor: grab; }
+.slot { cursor: grab; }
 
-/* Follows the pointer; the weight comes from the engine, not from CSS. */
+/* Follows the pointer. Position, tilt and lift are all spring outputs written
+   straight onto the element, so there is nothing to animate here: a transition
+   on top of them would only smooth an already smooth value and add lag. The
+   transform origin is the middle because that is where the pointer holds it. */
 .drag-ghost { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none;
-              will-change: transform; }
-.drag-ghost .card { box-shadow: 0 18px 42px #000b; transform: scale(1.05) rotate(-1.5deg);
-                    border-color: var(--accent); }
+              will-change: transform, opacity; transform-origin: 50% 50%; }
+/* Lifted off the table: a wider, softer shadow than anything else on it, which
+   is what says "above" when nothing can actually be seen from the side. */
+.drag-ghost .card {
+  box-shadow: 0 26px 50px -12px #000d, 0 6px 16px -6px #0009;
+  border-color: var(--suit-ink, var(--accent));
+  transition: box-shadow .2s ease;
+}
+/* Set down: the shadow collapses as the card arrives, so the last thing that
+   moves is the card meeting the table rather than the card stopping. */
+.drag-ghost.is-landing .card { box-shadow: 0 8px 18px -10px #000a; }
 
 /* --- reveal: relevance highlight --- */
 .reveal-slot.related .card {
