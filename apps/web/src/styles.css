@@ -5,7 +5,7 @@
    at build time, so suit references are themed spans rather than injected HTML. */
 :root {
   /* Chrome taken from T3 Code's own stylesheet, dark theme:
-     github.com/pingdotgg/t3code @ eb11506 -- apps/web/src/index.css
+     github.com/pingdotgg/t3code @ eb11506, apps/web/src/index.css
        --background   neutral-950            oklch(14.5% 0 0)
        --foreground   neutral-100            oklch(97% 0 0)
        --card         background 97% + white
@@ -15,7 +15,7 @@
        --error        red-500 90% + white
        --radius       0.625rem
      Written in the same notation rather than converted, so these are the very
-     same colours. Suit colours are NOT from here -- see suits.css. */
+     same colours. Suit colours are NOT from here; see suits.css. */
   --bg: oklch(14.5% 0 0);
   --ink: oklch(97% 0 0);
   --panel: color-mix(in srgb, var(--bg) 97%, #fff);
@@ -62,7 +62,12 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .row { display: flex; gap: .5rem; }
 .code-input { width: 7rem; text-align: center; letter-spacing: .3em; text-transform: uppercase; }
 .home label { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; color: var(--muted); }
-.room-code { background: var(--panel); padding: .15rem .5rem; border-radius: 6px; letter-spacing: .25em; }
+/* Focus has to be visible: cards and the draw pile are reachable by keyboard,
+   and an invisible focus ring makes that reachability useless. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.slot:focus-visible, .deck-card:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 12px;
+}
 .hint { color: var(--muted); font-size: .85rem; }
 .error { color: var(--danger); }
 
@@ -76,9 +81,11 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
   overflow: hidden; text-align: left;
   display: flex; flex-direction: column; gap: .35rem;
   background: var(--panel); border: 1px solid var(--line); border-top-width: 4px;
+  /* Each suit-border-* class below sets --suit-ink and --suit-hot; a card with
+     no suit at all (the draw pile) falls back to the neutral line colour. */
+  border-top-color: var(--suit-ink, var(--line));
   padding: .5rem; border-radius: 10px;
 }
-.card:not(:disabled):hover { transform: translateY(-2px); }
 .card-selected { outline: 2px solid var(--accent); }
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: .25rem; }
 .card-name { font-weight: 650; font-size: .85rem; }
@@ -86,55 +93,57 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .card-suit { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
 .card-body { font-size: .72rem; color: #cfd3dc; }
 .card-body p { margin: 0 0 .3rem; }
-.card-penalty { color: #d99b90; }
+.card-penalty { color: var(--danger); }
 .card-fallback { position: absolute; bottom: .3rem; right: .4rem; font-size: .6rem; color: var(--muted); }
 
 /* Text and borders use the readable "ink" variant; the filled suit chip
-   carries the calculator's exact colour. */
+   carries the calculator's exact colour. The border rules only publish the two
+   variants as variables, so anything on the card can ask for "my own colour"
+   without knowing which suit it is. */
 .suit-land { color: var(--suit-land-ink); }
-.suit-border-land { border-top-color: var(--suit-land-ink); }
+.suit-border-land { --suit-ink: var(--suit-land-ink); --suit-hot: var(--suit-land-hot); }
 .card-suit.suit-land { background: var(--suit-land); color: #fff; }
 .suit-flood { color: var(--suit-flood-ink); }
-.suit-border-flood { border-top-color: var(--suit-flood-ink); }
+.suit-border-flood { --suit-ink: var(--suit-flood-ink); --suit-hot: var(--suit-flood-hot); }
 .card-suit.suit-flood { background: var(--suit-flood); color: #fff; }
 .suit-weather { color: var(--suit-weather-ink); }
-.suit-border-weather { border-top-color: var(--suit-weather-ink); }
+.suit-border-weather { --suit-ink: var(--suit-weather-ink); --suit-hot: var(--suit-weather-hot); }
 .card-suit.suit-weather { background: var(--suit-weather); color: #fff; }
 .suit-flame { color: var(--suit-flame-ink); }
-.suit-border-flame { border-top-color: var(--suit-flame-ink); }
+.suit-border-flame { --suit-ink: var(--suit-flame-ink); --suit-hot: var(--suit-flame-hot); }
 .card-suit.suit-flame { background: var(--suit-flame); color: #fff; }
 .suit-army { color: var(--suit-army-ink); }
-.suit-border-army { border-top-color: var(--suit-army-ink); }
+.suit-border-army { --suit-ink: var(--suit-army-ink); --suit-hot: var(--suit-army-hot); }
 .card-suit.suit-army { background: var(--suit-army); color: #fff; }
 .suit-wizard { color: var(--suit-wizard-ink); }
-.suit-border-wizard { border-top-color: var(--suit-wizard-ink); }
+.suit-border-wizard { --suit-ink: var(--suit-wizard-ink); --suit-hot: var(--suit-wizard-hot); }
 .card-suit.suit-wizard { background: var(--suit-wizard); color: #fff; }
 .suit-leader { color: var(--suit-leader-ink); }
-.suit-border-leader { border-top-color: var(--suit-leader-ink); }
+.suit-border-leader { --suit-ink: var(--suit-leader-ink); --suit-hot: var(--suit-leader-hot); }
 .card-suit.suit-leader { background: var(--suit-leader); color: #fff; }
 .suit-beast { color: var(--suit-beast-ink); }
-.suit-border-beast { border-top-color: var(--suit-beast-ink); }
+.suit-border-beast { --suit-ink: var(--suit-beast-ink); --suit-hot: var(--suit-beast-hot); }
 .card-suit.suit-beast { background: var(--suit-beast); color: #fff; }
 .suit-weapon { color: var(--suit-weapon-ink); }
-.suit-border-weapon { border-top-color: var(--suit-weapon-ink); }
+.suit-border-weapon { --suit-ink: var(--suit-weapon-ink); --suit-hot: var(--suit-weapon-hot); }
 .card-suit.suit-weapon { background: var(--suit-weapon); color: #fff; }
 .suit-artifact { color: var(--suit-artifact-ink); }
-.suit-border-artifact { border-top-color: var(--suit-artifact-ink); }
+.suit-border-artifact { --suit-ink: var(--suit-artifact-ink); --suit-hot: var(--suit-artifact-hot); }
 .card-suit.suit-artifact { background: var(--suit-artifact); color: #fff; }
 .suit-wild { color: var(--suit-wild-ink); }
-.suit-border-wild { border-top-color: var(--suit-wild-ink); }
+.suit-border-wild { --suit-ink: var(--suit-wild-ink); --suit-hot: var(--suit-wild-hot); }
 .card-suit.suit-wild { background: var(--suit-wild); color: #fff; }
 .suit-building { color: var(--suit-building-ink); }
-.suit-border-building { border-top-color: var(--suit-building-ink); }
+.suit-border-building { --suit-ink: var(--suit-building-ink); --suit-hot: var(--suit-building-hot); }
 .card-suit.suit-building { background: var(--suit-building); color: #fff; }
 .suit-outsider { color: var(--suit-outsider-ink); }
-.suit-border-outsider { border-top-color: var(--suit-outsider-ink); }
+.suit-border-outsider { --suit-ink: var(--suit-outsider-ink); --suit-hot: var(--suit-outsider-hot); }
 .card-suit.suit-outsider { background: var(--suit-outsider); color: #fff; }
 .suit-undead { color: var(--suit-undead-ink); }
-.suit-border-undead { border-top-color: var(--suit-undead-ink); }
+.suit-border-undead { --suit-ink: var(--suit-undead-ink); --suit-hot: var(--suit-undead-hot); }
 .card-suit.suit-undead { background: var(--suit-undead); color: #fff; }
 .suit-cursed-item { color: var(--suit-cursed-item-ink); }
-.suit-border-cursed-item { border-top-color: var(--suit-cursed-item-ink); }
+.suit-border-cursed-item { --suit-ink: var(--suit-cursed-item-ink); --suit-hot: var(--suit-cursed-item-hot); }
 .card-suit.suit-cursed-item { background: var(--suit-cursed-item); color: #fff; }
 
 /* --- table --- */
@@ -159,19 +168,62 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .end-vote p { margin: 0 0 .5rem; }
 
 .settings { border: 1px solid var(--line); border-radius: 10px; margin: 1rem 0; }
-.settings label { display: block; padding: .2rem 0; font-size: .9rem; }
+.settings label { display: flex; align-items: center; gap: .55rem;
+                  padding: .3rem 0; font-size: .9rem; cursor: pointer; }
+/* A white system checkbox on a near-black page was the one thing that never
+   got themed. */
+.settings input[type="checkbox"] {
+  appearance: none; margin: 0; flex: 0 0 auto;
+  width: 1.05rem; height: 1.05rem; padding: 0; border-radius: 5px;
+  border: 1px solid var(--input-line); background: var(--bg);
+  display: grid; place-content: center; transition: background .15s, border-color .15s;
+}
+.settings input[type="checkbox"]::after {
+  content: ''; width: .55rem; height: .3rem; margin-top: -.12rem;
+  border: 2px solid var(--accent-ink); border-top: 0; border-right: 0;
+  transform: rotate(-45deg) scale(0); transition: transform .15s cubic-bezier(.2,.8,.3,1);
+}
+.settings input[type="checkbox"]:checked {
+  background: var(--accent); border-color: var(--accent);
+}
+.settings input[type="checkbox"]:checked::after { transform: rotate(-45deg) scale(1); }
 .players { list-style: none; padding: 0; }
 .players li { padding: .3rem 0; border-bottom: 1px solid var(--line); }
 
 /* --- scores --- */
+/* Who won and by how much, before any card-by-card arithmetic. */
+.podium { list-style: none; margin: 0 0 1.4rem; padding: 0;
+          display: flex; flex-direction: column; gap: .4rem; }
+.podium li { display: grid; grid-template-columns: 1.4rem 8rem 1fr 3.5rem 6rem;
+             align-items: center; gap: .6rem; padding: .35rem .5rem;
+             border-radius: 8px; background: var(--panel); border: 1px solid var(--line); }
+.podium li.winner { border-color: var(--accent); }
+.podium .rank { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.podium .who { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium .bar { display: block; height: .5rem; border-radius: 999px;
+               background: rgb(255 255 255 / 5%); overflow: hidden; }
+.podium .bar > span { display: block; height: 100%; border-radius: 999px;
+                      background: color-mix(in srgb, var(--accent) 55%, transparent);
+                      animation: bar-grow .6s cubic-bezier(.2,.8,.3,1) both; }
+.podium li.winner .bar > span { background: var(--accent); }
+@keyframes bar-grow { from { transform: scaleX(0); transform-origin: left; } }
+.podium .gap { color: var(--muted); font-size: .78rem; }
+.podium li.winner .gap { color: var(--accent); }
+
 .score-block { background: var(--panel); border: 1px solid var(--line);
                border-radius: 10px; padding: .8rem; margin-bottom: .8rem; }
+.score-block summary { cursor: pointer; font-weight: 650; }
+.summary-hint { color: var(--muted); font-weight: 400; font-size: .85rem; }
 .score-block h2 { color: var(--ink); display: flex; gap: .5rem; align-items: baseline; }
 .total { margin-left: auto; font-size: 1.3rem; color: var(--accent); font-variant-numeric: tabular-nums; }
-.score-block table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.score-block table { width: 100%; border-collapse: collapse; font-size: .8rem;
+                     margin-top: .6rem; }
+.score-block th { text-align: left; font-weight: 600; font-size: .7rem; color: var(--muted);
+                  text-transform: uppercase; letter-spacing: .06em; padding: 0 .4rem .3rem; }
 .score-block td { padding: .25rem .4rem; border-top: 1px solid var(--line); vertical-align: top; }
+.score-actions { display: flex; gap: .5rem; margin-top: 1.2rem; }
 .num { text-align: right; font-variant-numeric: tabular-nums; width: 3.5rem; }
-.pos { color: #8fbf7a; } .neg { color: #d99b90; }
+.pos { color: #8fbf7a; } .neg { color: var(--danger); }
 .effect { color: var(--muted); font-size: .72rem; }
 tr.blanked { opacity: .45; text-decoration: line-through; }
 
@@ -197,7 +249,7 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
   color: var(--accent); font-variant-numeric: tabular-nums;
   text-shadow: 0 0 26px color-mix(in srgb, var(--accent) 28%, transparent);
 }
-.reveal-total.negative { color: #d99b90; }
+.reveal-total.negative { color: var(--danger); }
 
 .reveal-row { display: grid; grid-template-columns: repeat(8, var(--card-w));
               gap: .4rem; align-items: start; justify-content: center; }
@@ -233,8 +285,8 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
   70%  { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -34px) scale(1); }
 }
-.d-pos { color: #8fbf7a; } .d-neg { color: #d99b90; }
-.d-blank { color: #d99b90; font-size: .8rem; letter-spacing: .08em; }
+.d-pos { color: #8fbf7a; } .d-neg { color: var(--danger); }
+.d-blank { color: var(--danger); font-size: .8rem; letter-spacing: .08em; }
 .d-unblank { color: #8fbf7a; font-size: .9rem; }
 
 .reveal-controls { display: flex; justify-content: center; }
@@ -245,13 +297,13 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .reveal-extras .actions { width: 100%; max-width: 720px; }
 
 /* --- drag between zones --- */
-.board { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1rem; }
-.zone-label { margin: 0 0 .4rem; font-size: .75rem; text-transform: uppercase;
-              letter-spacing: .08em; color: var(--muted); }
+.board { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;
+         justify-content: center; margin-bottom: 1rem; }
+.zone-count { margin: 0 0 .4rem; font-size: .75rem; text-transform: uppercase;
+              letter-spacing: .08em; color: var(--muted); text-align: center; }
 
-.deck-pile { flex: 0 0 auto; }
-.deck-pile.drawable .deck-card { cursor: grab; border-color: var(--accent); }
-.deck-pile.drawable .deck-card::after {
+.deck-card.drawable { cursor: grab; border-color: var(--accent); }
+.deck-card.drawable::after {
   content: ''; position: absolute; inset: -3px; border-radius: 12px;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent),
               0 0 18px color-mix(in srgb, var(--accent) 25%, transparent); pointer-events: none;
@@ -261,7 +313,7 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
   border: 1px dashed var(--line); border-radius: 12px; padding: .55rem;
   transition: border-color .18s, background .18s;
 }
-.discard-zone { flex: 1 1 auto; min-width: 0; }
+.discard-zone { flex: 0 1 auto; min-width: 0; }
 .hand-zone { margin-bottom: 1rem; }
 .zone-hot { border-color: var(--accent);
             background: color-mix(in srgb, var(--accent) 7%, transparent);
@@ -269,8 +321,8 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 
 /* The card left behind while its ghost is under the pointer. */
 .is-dragging { opacity: .22; filter: grayscale(1); }
-.hand-zone .slot, .discard-zone .cards > div, .deck-card { touch-action: none; user-select: none; }
-.hand-zone .slot { transition: transform .18s cubic-bezier(.2,.8,.3,1); cursor: grab; }
+.slot, .deck-card { touch-action: none; user-select: none; }
+.slot { transition: transform .18s cubic-bezier(.2,.8,.3,1); cursor: grab; }
 
 /* Follows the pointer; the weight comes from the engine, not from CSS. */
 .drag-ghost { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none;
@@ -290,10 +342,12 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 }
 
 /* --- reveal: blanked = struck through, not stamped --- */
-/* Blanked: the card itself goes red, in the same treatment during play and
-   during the reveal. Greyscale was the old look and would drain exactly the
-   colour we are adding, so it is gone. */
-.card-blanked {
+/* Red means "this card is dead or will be", and it is exactly one red: T3
+   Code's destructive colour. A card blanked by the server right now and a card
+   the hovered one would blank are tinted identically; the difference is in
+   what you did to see it, not in what it means. */
+.card-blanked,
+.card-harmed {
   background: color-mix(in srgb, var(--danger) 22%, var(--panel));
   border-color: color-mix(in srgb, var(--danger) 70%, transparent);
   transition: background .35s ease, border-color .35s ease;
@@ -303,14 +357,14 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .card-blanked .card-strength { opacity: .55; }
 .strike {
   position: absolute; left: 6%; right: 6%; top: 50%; height: 2px;
-  background: #d99b90; transform-origin: left center; transform: scaleX(0);
+  background: var(--danger); transform-origin: left center; transform: scaleX(0);
   animation: strike-through .38s cubic-bezier(.4,0,.2,1) forwards;
-  box-shadow: 0 0 8px #d99b9088;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--danger) 55%, transparent);
 }
 @keyframes strike-through { to { transform: scaleX(1); } }
 .blank-label {
   position: absolute; left: 50%; top: calc(50% + .55rem); transform: translateX(-50%);
-  font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: #d99b90;
+  font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: var(--danger);
   animation: fade-in .3s .25s both;
 }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -327,12 +381,16 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .hand-zone .cards {
   display: grid; grid-template-columns: repeat(8, var(--card-w));
   gap: .4rem; justify-content: start;
+  /* Always eight columns wide, so centring the block never moves a card when
+     the hand goes from seven to eight and back. */
+  width: max-content; margin-inline: auto;
 }
 /* The discard area shows all ten places it can hold. */
 .discard-row {
   /* Ten places over two rows of five, at the same size as any other card. */
   display: grid; grid-template-columns: repeat(5, var(--card-w));
   gap: .35rem; justify-content: start;
+  width: max-content; margin-inline: auto;
 }
 .discard-row > * { min-width: 0; }
 
@@ -344,14 +402,17 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .card-compact .card-suit { font-size: .52rem; padding: .05rem .25rem; }
 
 /* An empty place in the discard area. */
+/* Ten outlines showing how far the game has left to run. Quiet on purpose:
+   at the start they are most of the table, and they are not the subject. */
 .card-empty {
   width: var(--card-w); aspect-ratio: 5 / 7;
-  border: 1px dashed var(--line); border-radius: 10px; background: #ffffff05;
+  border: 1px dashed rgb(255 255 255 / 7%); border-radius: 10px; background: none;
 }
 
-/* Draw pile: no caption, and the count sits quietly in the corner. */
+/* Draw pile: no caption, and the count sits quietly in the corner. It is the
+   first of the ten places in the discard area, so it takes their size. */
 .deck-card {
-  width: var(--deck-w, 6.5rem); aspect-ratio: 5 / 7; border-radius: 10px;
+  width: var(--card-w); aspect-ratio: 5 / 7; border-radius: 10px;
   position: relative; display: block;
 }
 .deck-count {
@@ -366,8 +427,6 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
   .reveal-row { grid-template-columns: repeat(4, var(--card-w)); }
   .discard-row { grid-template-columns: repeat(5, var(--card-w)); }
   .card { --card-ratio: 5 / 7.6; }
-  .board { flex-wrap: nowrap; }
-  .deck-card { --deck-w: 5rem; min-height: 6.6rem; }
 }
 
 /* --- hovering a card lights up the conditions that mention it -------------- */
@@ -417,9 +476,19 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 /* A card named by the hovered one: shimmer in the normal ink colour. */
 .card-name.ref-sweep { --ref-c: var(--ink); --ref-hot: #ffffff; }
 
-/* The card being hovered lifts slightly, so it is clear what is driving it. */
-.hand-zone .slot.is-hovered { transform: translateY(-6px); }
-.hand-zone .slot.is-hovered .card { border-color: var(--accent); }
+/* The card being hovered is ringed in its own suit colour, so the thing driving
+   all the highlighting is marked in the same language as the highlights. The
+   card does not move or change size: it sits in a row of identical rectangles
+   and the eye reads a shifting one as a new card rather than the same one. */
+/* --suit-ink, the same value the top border already carries, not the brightened
+   --suit-hot: the ring reads as the card's colour only if it IS the card's
+   colour. --suit-hot belongs to the sweeps, where a lit word has to beat the
+   resting text around it; a ring has nothing to out-shout. */
+.slot.is-hovered .card {
+  border-color: var(--suit-ink, var(--accent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--suit-ink, var(--accent)) 45%, transparent),
+              0 0 14px -8px var(--suit-ink, var(--accent));
+}
 
 @media (prefers-reduced-motion: reduce) {
   /* No travelling light; the reference just sits at its bright colour. */
@@ -438,22 +507,71 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
   -webkit-mask-image: linear-gradient(#000 78%, transparent 100%);
 }
 
-/* The hovered card drops the ratio and grows over its neighbours, so the full
-   text is always readable somewhere. */
-.hand-zone .slot.is-hovered { z-index: 20; }
-.hand-zone .slot.is-hovered .card {
-  aspect-ratio: auto; min-height: 176px; height: auto; overflow: visible;
-  box-shadow: 0 14px 34px #000a;
-}
-.hand-zone .slot.is-hovered .card-body {
-  overflow: visible; mask-image: none; -webkit-mask-image: none;
-}
+/* The hovered card used to drop the ratio and grow over its neighbours to show
+   the clipped tail of its text. It keeps its size now; Space opens the card in
+   full, which is the deliberate way to read one and does not depend on the
+   pointer staying still. Only the glow rises above the neighbouring cards. */
+.slot.is-hovered { z-index: 20; }
 
-/* --- what a card hurts ---------------------------------------------------- */
-/* Hovering Blizzard ("BLANKS all Floods") turns every Flood on the table red,
-   in T3 Code's destructive colour, so damage reads differently from help. */
-.card.card-harmed {
-  background: color-mix(in srgb, var(--danger) 15%, var(--panel));
-  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
-  transition: background .3s ease, border-color .3s ease;
+/* --- what a card blanks --------------------------------------------------- */
+/* Hovering Blizzard ("BLANKS all Floods") turns every Flood on the table red.
+   Styled together with .card-blanked above, so both reds are the same red. */
+
+/* --- app bar --------------------------------------------------------------- */
+/* Which room you are in, how to invite someone, the language, and the way out.
+   Present in every phase: all four used to disappear the moment a game began. */
+.app-bar {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem 1rem; border-bottom: 1px solid var(--line);
+  max-width: 1420px; margin: 0 auto;
 }
+.app-bar .spacer { flex: 1 1 auto; }
+.app-bar button { padding: .35rem .6rem; font-size: .85rem; }
+.app-bar .locale { padding: .35rem .5rem; font-size: .85rem; }
+button.danger { background: color-mix(in srgb, var(--danger) 18%, var(--panel));
+                border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+                color: var(--danger); }
+
+/* The room code doubles as the invite: pressing it copies a link. */
+button.room-code { display: inline-flex; align-items: center; gap: .5rem; }
+.room-code .room-label { color: var(--muted); font-size: .8rem; }
+.room-code code { letter-spacing: .22em; font-weight: 650; }
+.room-code .copy-mark { color: var(--muted); font-size: .8rem; }
+.copied { color: var(--accent); font-size: .8rem; }
+
+/* --- whose turn it is ------------------------------------------------------ */
+/* A ring around a name chip was the only sign. Say it in words as well. */
+.turn-banner {
+  margin: 0; font-size: .95rem; color: var(--muted);
+}
+.turn-banner.mine { color: var(--accent); font-weight: 650; }
+.keyboard-hint { margin: .5rem 0 0; text-align: center; font-size: .75rem; opacity: .75; }
+
+/* --- home ------------------------------------------------------------------ */
+.home { max-width: 26rem; text-align: center; }
+.tagline { margin: 0; color: var(--ink); }
+.how { text-align: left; color: var(--muted); font-size: .85rem;
+       margin: .2rem 0 0; padding-left: 1.2rem; }
+.how li { padding: .1rem 0; }
+.home label { align-items: stretch; width: 100%; }
+.home label input { text-align: center; }
+.home .primary { min-width: 10rem; }
+
+/* --- one card, read in full ------------------------------------------------ */
+/* The table shows cards at a fixed ratio, so a long rules text is cut off. On a
+   mouse, hovering grows the card; a tap or Space opens this, which is the only
+   route to that text from a touch screen or a keyboard. */
+.card-overlay {
+  position: fixed; inset: 0; z-index: 60; background: #000b;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+  animation: fade-in .15s both;
+}
+.card-overlay-inner { display: flex; flex-direction: column; align-items: center; gap: .8rem; }
+.card-overlay .card {
+  width: min(20rem, 80vw); aspect-ratio: auto; height: auto; min-height: 16rem;
+  overflow: visible; box-shadow: 0 24px 60px #000c;
+}
+.card-overlay .card .card-body {
+  overflow: visible; mask-image: none; -webkit-mask-image: none; font-size: .9rem;
+}
+.card-overlay .card-name { font-size: 1.15rem; }

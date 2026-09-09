@@ -1,5 +1,5 @@
 // Room manager: owns live rooms, routes protocol messages, and decides what each
-// connection is allowed to see. Transport-agnostic -- it talks to a `Connection`
+// connection is allowed to see. Transport-agnostic: it talks to a `Connection`
 // interface, so the tests drive it without opening a socket.
 import { randomUUID } from 'node:crypto';
 
@@ -16,8 +16,8 @@ import type { Store } from './db.ts';
 import {
   addPlayer, advanceReveal, beginReveal, createRoom, discard, draw, GameError,
   isRevealComplete, nextRevealCard, pendingActionsFor, publicState, pushRevealStep,
-  removePlayer, reorderHand, revealingPlayer, setActionChoice, setConnected, startGame,
-  voteEndGame, type GameState,
+  removePlayer, reorderHand, resetToLobby, revealingPlayer, setActionChoice, setConnected,
+  startGame, voteEndGame, type GameState,
 } from './game.ts';
 
 export interface Connection {
@@ -39,13 +39,10 @@ const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const DEFAULT_EXPANSIONS: ExpansionConfig = {
   cursedHoardSuits: false,
   cursedHoardItems: false,
-  phoenixPromo: false,
 };
 
 export const DEFAULT_SETTINGS: RoomSettings = {
   expansions: DEFAULT_EXPANSIONS,
-  // Off by default: working out your own score is the game (DESIGN.md).
-  scorePreview: false,
   locale: 'de',
 };
 
@@ -154,6 +151,9 @@ export class RoomManager {
       case 'voteEndGame':
         voteEndGame(room.state, playerId, message.vote, now);
         break;
+      case 'rematch':
+        resetToLobby(room.state, now);
+        break;
       case 'resolveAction':
         // Island, Book of Changes, Doppelganger and friends ask their holder a
         // question. Book of Changes needs two answers (target card, then suit),
@@ -183,7 +183,7 @@ export class RoomManager {
 
   /**
    * Whoever is being revealed drives their own reveal. If they have dropped,
-   * anyone still connected may advance it -- otherwise one closed laptop would
+   * anyone still connected may advance it; otherwise one closed laptop would
    * freeze the scoring for the whole table.
    */
   #mayDriveReveal(room: LiveRoom, playerId: string): boolean {
@@ -203,8 +203,8 @@ export class RoomManager {
 
     const player = revealingPlayer(room.state)!;
     const engine = this.#engineFor(room);
-    // Score the prefix that is face up. Fantasy Realms scoring is not additive
-    // -- a card can blank or rescue earlier ones -- so each step is a fresh
+    // Score the prefix that is face up. Fantasy Realms scoring is not additive:
+    // a card can blank or rescue earlier ones, so each step is a fresh
     // scoring of everything revealed so far, and the client animates the diff.
     const faceUp = player.hand.slice(0, room.state.reveal!.steps.length + 1);
     const { total, breakdown } = engine.scoreHand(faceUp, room.state.discard, {});
@@ -272,7 +272,7 @@ export class RoomManager {
     this.#broadcast(room);
   }
 
-  /** A socket dropped. The seat is kept -- the hand is still scored. */
+  /** A socket dropped. The seat is kept; the hand is still scored. */
   disconnect(conn: Connection): void {
     const room = conn.roomCode ? this.#rooms.get(conn.roomCode) : undefined;
     this.#detachConnection(conn);
@@ -313,16 +313,25 @@ export class RoomManager {
   /**
    * Which of a player's own cards are dead right now. Cheap (one scoring) and
    * private: it only ever goes to the player holding them.
+   *
+   * blankedIn(), not scoreHand(): between drawing and discarding the hand is
+   * eight cards, which scoreHand rejects, and the hint used to disappear for
+   * the whole of the turn where it decides the discard.
+   *
+   * #engineFor(), not room.engine: a room restored from the store after a
+   * restart has no engine until something asks for one, and reading the field
+   * directly meant the hint stayed dark for everyone until the next draw or
+   * discard built it. The empty-hand check comes first so a room sitting in the
+   * lobby still never spins up a vm context.
    */
   #blankedIn(room: LiveRoom, player: { hand: string[]; cursedItems: string[] }): string[] {
-    if (!room.engine || player.hand.length === 0) return [];
+    if (player.hand.length === 0) return [];
     try {
-      const { breakdown } = room.engine.scoreHand(
+      return this.#engineFor(room).blankedIn(
         [...player.hand, ...player.cursedItems],
         room.state.discard,
         {},
       );
-      return breakdown.filter((r) => r.blanked).map((r) => r.cardId);
     } catch {
       // A hand the engine will not score yet is simply not annotated.
       return [];

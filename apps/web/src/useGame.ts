@@ -57,6 +57,9 @@ export function useGame(roomCode: string | null, nickname: string): GameConnecti
         case 'state':
           setState(message.state);
           setSettings(message.settings);
+          // A rematch puts the room back in the lobby; the old final scores
+          // must stop covering the screen when it does.
+          if (message.state.phase === 'lobby') setScores(null);
           break;
         case 'hand':
           setHand(message.cards);

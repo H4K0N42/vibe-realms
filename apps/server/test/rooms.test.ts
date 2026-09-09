@@ -23,6 +23,9 @@ function fakeEngine(): RoomEngineHandle {
       total: hand.length * 10,
       breakdown: hand.map((cardId) => ({ cardId, base: 10, bonus: 0, penalty: 0, blanked: false })),
     }),
+    // Nothing is ever blanked here, but it answers for eight cards as the real
+    // one does, so the live hint keeps working mid-turn.
+    blankedIn: () => [],
     dispose: () => {},
   };
 }
@@ -171,6 +174,64 @@ describe('turn enforcement over the wire', () => {
     manager.handle(a, { t: 'start' });
     manager.handle(b, { t: 'draw', from: 'deck' });
     assert.equal(b.last('error')?.code, 'NOT_YOUR_TURN');
+  });
+
+  it('still reports blanked cards while the hand is eight', () => {
+    // The live hint used to come from scoreHand, which refuses an over-full
+    // hand, so it went empty for the whole of the turn between drawing and
+    // discarding: exactly when it is deciding what to throw away.
+    // The fake's scoreHand never blanks anything and its blankedIn always
+    // blanks the first card, so this can only pass by way of blankedIn.
+    const m = new RoomManager(store, {
+      now: () => now,
+      rand: () => 0.5,
+      makeEngine: () => ({ ...fakeEngine(), blankedIn: (hand) => [hand[0]!] }),
+    });
+    const code = m.createRoom();
+    const a = new FakeConn();
+    m.handle(a, { t: 'join', roomCode: code, nickname: 'a' });
+    const b = new FakeConn();
+    m.handle(b, { t: 'join', roomCode: code, nickname: 'b' });
+    m.handle(a, { t: 'start' });
+
+    assert.equal(a.last('hand')!.cards.length, 7);
+    assert.deepEqual(a.last('hand')!.blanked, [a.last('hand')!.cards[0]]);
+
+    m.handle(a, { t: 'draw', from: 'deck' });
+    const eight = a.last('hand')!;
+    assert.equal(eight.cards.length, 8);
+    assert.deepEqual(eight.blanked, [eight.cards[0]], 'hint lost at eight cards');
+    m.disposeAll();
+  });
+
+  it('reports blanked cards on the first broadcast after a restart', () => {
+    // A room restored from the store has no engine yet. Reading room.engine
+    // directly meant the hint stayed dark until the next draw or discard built
+    // one, so a resumed game came back with nothing marked.
+    const opts = {
+      now: () => now,
+      rand: () => 0.5,
+      makeEngine: () => ({ ...fakeEngine(), blankedIn: (hand: string[]) => [hand[0]!] }),
+    };
+    const before = new RoomManager(store, opts);
+    const code = before.createRoom();
+    const a = new FakeConn();
+    before.handle(a, { t: 'join', roomCode: code, nickname: 'a' });
+    const b = new FakeConn();
+    before.handle(b, { t: 'join', roomCode: code, nickname: 'b' });
+    before.handle(a, { t: 'start' });
+    const token = a.last('joined')!.resumeToken;
+    before.disposeAll();
+
+    // A second manager over the same store is what a restart looks like.
+    const after = new RoomManager(store, opts);
+    const back = new FakeConn();
+    after.handle(back, { t: 'join', roomCode: code, nickname: 'a', resumeToken: token });
+
+    const hand = back.last('hand')!;
+    assert.equal(hand.cards.length, 7);
+    assert.deepEqual(hand.blanked, [hand.cards[0]], 'hint dark until the first move');
+    after.disposeAll();
   });
 
   it('lets the player whose turn it is draw and discard', () => {
@@ -498,5 +559,75 @@ describe('blanked cards are reported live', () => {
     const broadcast = JSON.stringify(a.received.filter((msg) => msg.t !== 'hand'));
     assert.ok(!broadcast.includes('blanked'));
     m.disposeAll();
+  });
+});
+
+describe('rematch', () => {
+  it('puts the same players back in the lobby with fresh hands', () => {
+    const code = manager.createRoom();
+    const a = seat(code, 'a');
+    const b = seat(code, 'b');
+    manager.handle(a, { t: 'start' });
+
+    // Ten discards end the game.
+    for (let i = 0; i < 10; i += 1) {
+      const who = i % 2 === 0 ? a : b;
+      manager.handle(who, { t: 'draw', from: 'deck' });
+      manager.handle(who, { t: 'discard', cardId: who.last('hand')!.cards[0]! });
+    }
+    driveReveal(manager, [a, b]);
+    assert.ok(a.last('scores'), 'the game finished');
+
+    manager.handle(a, { t: 'rematch' });
+    const state = b.last('state')!.state;
+    assert.equal(state.phase, 'lobby');
+    assert.equal(state.players.length, 2, 'everyone keeps their seat');
+    assert.equal(state.discard.length, 0);
+    assert.deepEqual(b.last('hand')!.cards, [], 'hands are cleared');
+
+    // And the room is playable again.
+    manager.handle(a, { t: 'start' });
+    assert.equal(a.last('state')!.state.phase, 'playing');
+    assert.equal(a.last('hand')!.cards.length, 7);
+    assert.notEqual(a.last('state')!.state.drawPileCount, 0);
+  });
+
+  it('refuses a rematch while a game is still running', () => {
+    const code = manager.createRoom();
+    const a = seat(code, 'a');
+    seat(code, 'b');
+    manager.handle(a, { t: 'start' });
+
+    manager.handle(a, { t: 'rematch' });
+    assert.equal(a.last('error')?.code, 'ILLEGAL_MOVE');
+    assert.equal(a.last('state')?.state.phase, 'playing', 'the game is untouched');
+  });
+});
+
+describe('rematch drops players who have gone', () => {
+  it('does not deal a hand to someone who left after the final scores', () => {
+    const code = manager.createRoom();
+    const a = seat(code, 'a');
+    const b = seat(code, 'b');
+    const c = seat(code, 'c');
+    manager.handle(a, { t: 'start' });
+    for (let i = 0; i < 10; i += 1) {
+      const who = [a, b, c][i % 3]!;
+      manager.handle(who, { t: 'draw', from: 'deck' });
+      manager.handle(who, { t: 'discard', cardId: who.last('hand')!.cards[0]! });
+    }
+    driveReveal(manager, [a, b, c]);
+
+    manager.disconnect(c); // closed the tab on the scoreboard
+    manager.handle(a, { t: 'rematch' });
+
+    const state = a.last('state')!.state;
+    assert.equal(state.players.length, 2, 'the seat is not held for the next game');
+    assert.ok(!state.players.some((p) => p.nickname === 'c'));
+
+    // ...and the new game is playable rather than stalled on an empty seat.
+    manager.handle(a, { t: 'start' });
+    assert.equal(a.last('state')!.state.phase, 'playing');
+    assert.equal(a.last('state')!.state.turn, a.playerId);
   });
 });

@@ -8,8 +8,7 @@ import {
 } from '../src/game.ts';
 
 const SETTINGS: RoomSettings = {
-  expansions: { cursedHoardSuits: false, cursedHoardItems: false, phoenixPromo: false },
-  scorePreview: false,
+  expansions: { cursedHoardSuits: false, cursedHoardItems: false },
   locale: 'de',
 };
 

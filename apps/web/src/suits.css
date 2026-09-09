@@ -1,8 +1,9 @@
-/* GENERATED from calculator/css/style.css -- do not edit by hand.
+/* GENERATED from calculator/css/style.css. Do not edit by hand.
    Regenerate with: node scripts/sync-colours.mjs
 
    --suit-*      upstream's exact colour, for fills and borders
-   --suit-*-ink  the same hue lightened until it reads on #0f0f0f (WCAG AA)
+   --suit-*-ink  the same hue and chroma, lifted in OKLCH until it reads on
+                 #0f0f0f (WCAG AA)
    --suit-*-hot  brighter still: the lit state a hover highlight settles on */
 :root {
   --suit-land: #3b1d13;
@@ -21,35 +22,35 @@
   --suit-undead: #004e4a;
   --suit-cursed-item: #900c3f;
 
-  --suit-land-ink: #897771;
-  --suit-flood-ink: #7678a1;
+  --suit-land-ink: #987367;
+  --suit-flood-ink: #7276b4;
   --suit-weather-ink: #a6bced;
-  --suit-flame-ink: #bf5d61;
-  --suit-army-ink: #7f7c7e;
+  --suit-flame-ink: #c95658;
+  --suit-army-ink: #80797d;
   --suit-wizard-ink: #e056a3;
-  --suit-leader-ink: #956db6;
+  --suit-leader-ink: #9865c3;
   --suit-beast-ink: #60a35c;
   --suit-weapon-ink: #878586;
-  --suit-artifact-ink: #d3523b;
+  --suit-artifact-ink: #d34f38;
   --suit-wild-ink: #c6c2c3;
-  --suit-building-ink: #85778d;
+  --suit-building-ink: #897298;
   --suit-outsider-ink: #fba934;
-  --suit-undead-ink: #528784;
-  --suit-cursed-item-ink: #b86384;
+  --suit-undead-ink: #468580;
+  --suit-cursed-item-ink: #cd4e70;
 
-  --suit-land-hot: #bbb0ad;
-  --suit-flood-hot: #b0b0c8;
-  --suit-weather-hot: #cbd8f5;
-  --suit-flame-hot: #daa1a3;
-  --suit-army-hot: #b5b3b4;
-  --suit-wizard-hot: #ed9dca;
-  --suit-leader-hot: #c2aad5;
-  --suit-beast-hot: #a3caa0;
-  --suit-weapon-hot: #b9b8b9;
-  --suit-artifact-hot: #e59a8d;
-  --suit-wild-hot: #dedcdc;
-  --suit-building-hot: #b8b0bd;
-  --suit-outsider-hot: #fdcd89;
-  --suit-undead-hot: #9ab9b8;
-  --suit-cursed-item-hot: #d6a5b8;
+  --suit-land-hot: #cfa79a;
+  --suit-flood-hot: #a5abed;
+  --suit-weather-hot: #c6d8ff;
+  --suit-flame-hot: #fe8e8d;
+  --suit-army-hot: #b6aeb3;
+  --suit-wizard-hot: #ff98cc;
+  --suit-leader-hot: #cd99fc;
+  --suit-beast-hot: #8dd288;
+  --suit-weapon-hot: #b8b6b7;
+  --suit-artifact-hot: #ff917c;
+  --suit-wild-hot: #dfdbdc;
+  --suit-building-hot: #bfa6cf;
+  --suit-outsider-hot: #fecf97;
+  --suit-undead-hot: #7dbdb7;
+  --suit-cursed-item-hot: #ff8ba5;
 }

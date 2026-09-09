@@ -2,7 +2,7 @@
 // one file per locale, and parses card effect text out of HTML into TextToken[].
 //
 // Upstream renders that text as raw HTML with its own CSS. We render it with our
-// own components, so no HTML may survive into the output -- see DESIGN.md "i18n".
+// own components, so no HTML may survive into the output. See DESIGN.md "i18n".
 //
 // The upstream data is hand-maintained across 14 languages and is dirty in
 // well-defined ways (wrong-case suit classes, a stray space, two malformed tags).
@@ -75,7 +75,7 @@ function parseText(html, { locale, key }) {
     s.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
 
-  // Malformed in upstream (kr): `<span class="flame"번개</span>` -- the tag is
+  // Malformed in upstream (kr): `<span class="flame"번개</span>`: the tag is
   // never closed. Repair it rather than swallowing the whole line as text.
   html = html.replace(/<span\s+class="([^"]*)"(?=[^>])/g, '<span class="$1">');
   // Malformed in upstream: `<span class class="leader">`.
@@ -102,7 +102,7 @@ function parseText(html, { locale, key }) {
       } else {
         const cls = attrs.match(/class\s*=\s*"([^"]*)"/);
         if (!cls) {
-          suit = null; // bare <span> -- 10 of these upstream, plain text
+          suit = null; // bare <span>, 10 of these upstream, plain text
         } else {
           const norm = normaliseSuit(cls[1]);
           if (norm === null) {

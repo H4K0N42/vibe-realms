@@ -1,7 +1,7 @@
 // Persistence so a restart does not kill games in progress, plus the sweeper
 // that stops the database growing forever (DESIGN.md "Storage").
 //
-// Uses node:sqlite, built into Node 24 -- no native module, so the Docker image
+// Uses node:sqlite, built into Node 24: no native module, so the Docker image
 // needs no compiler.
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
@@ -94,7 +94,7 @@ export function openStore(dataDir: string, filename = 'vibe-realms.sqlite'): Sto
     },
     sweep(now) {
       // A room is abandoned when nobody is connected, or when nobody has acted
-      // for ROOM_IDLE_MS -- the "closed laptop" case, which would otherwise
+      // for ROOM_IDLE_MS: the "closed laptop" case, which would otherwise
       // leave a row sitting in the database forever.
       const markedAbandoned: string[] = [];
       for (const row of db.prepare('SELECT code, state, abandoned_at FROM rooms').all() as {

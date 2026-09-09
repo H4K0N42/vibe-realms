@@ -163,8 +163,8 @@ console.log('totals:', totals.join(', '));
 assert.ok(totals.some((t) => t !== totals[0]) || totals[0] !== 0, 'scores are not all trivially zero');
 
 // Hidden information must hold *while the game is being played*. The reveal
-// deliberately makes every card public afterwards -- that is the whole point of
-// it -- so the check stops at the moment scoring begins.
+// deliberately makes every card public afterwards, which is the whole point of
+// it, so the check stops at the moment scoring begins.
 for (const [i, p] of players.entries()) {
   const untilScoring = p.msgs.findIndex((m) => m.t === 'state' && m.state.phase !== 'playing');
   const duringPlay = p.msgs.slice(0, untilScoring === -1 ? p.msgs.length : untilScoring);

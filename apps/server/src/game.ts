@@ -1,4 +1,4 @@
-// Pure game state machine. No I/O, no websockets, no database -- so it can be
+// Pure game state machine. No I/O, no websockets, no database, so it can be
 // tested exhaustively and reasoned about on its own.
 //
 // The vendored engine contains NO game loop (it only scores hands and tracks a
@@ -189,6 +189,35 @@ export function startGame(
   state.lastActionAt = now;
 }
 
+/**
+ * Play again with the same people: back to the lobby with every seat kept.
+ * Only from a finished game: there is nothing to reset before that, and
+ * mid-game it would be a way to wipe everyone's hand.
+ */
+export function resetToLobby(state: GameState, now: number): void {
+  if (state.phase !== 'finished') throw new GameError('ILLEGAL_MOVE', 'game is not over');
+  // Whoever closed the tab after the final scores is not playing the next game.
+  // Keeping their seat would deal them a hand and then stall on their turn
+  // until the disconnect vote opened; they can rejoin from the lobby instead.
+  state.players = state.players.filter((p) => p.connected);
+  state.players.forEach((p, i) => (p.seat = i));
+  for (const player of state.players) {
+    player.hand = [];
+    player.cursedItems = [];
+    player.drawnThisTurn = false;
+    player.votedEnd = false;
+  }
+  state.phase = 'lobby';
+  state.turnIndex = 0;
+  state.drawPile = [];
+  state.discard = [];
+  state.endReason = null;
+  state.reveal = null;
+  state.finalScores = [];
+  state.actionChoices = {};
+  state.lastActionAt = now;
+}
+
 export function currentPlayer(state: GameState): PrivatePlayer | undefined {
   return state.players[state.turnIndex];
 }
@@ -270,7 +299,7 @@ export function connectedPlayers(state: GameState): PrivatePlayer[] {
 
 /**
  * Unanimous among currently connected players. With 2 players that means the one
- * remaining player ends it alone -- correct, since there is no game left.
+ * remaining player ends it alone, which is correct: there is no game left.
  */
 export function voteEndGame(state: GameState, id: PlayerId, vote: boolean, now: number): boolean {
   if (!endVoteAvailable(state, now)) throw new GameError('ILLEGAL_MOVE', 'no early-end vote is open');
@@ -305,7 +334,7 @@ export function reorderHand(
 ): void {
   const player = state.players.find((p) => p.id === id);
   if (!player) throw new GameError('ILLEGAL_MOVE', 'unknown player');
-  // Must be a permutation of the hand -- never a way to gain, drop or swap cards.
+  // Must be a permutation of the hand, never a way to gain, drop or swap cards.
   const before = [...player.hand].sort();
   const after = [...cards].sort();
   if (before.length !== after.length || before.some((c, i) => c !== after[i])) {

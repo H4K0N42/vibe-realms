@@ -5,14 +5,10 @@ export interface ExpansionConfig {
   cursedHoardSuits: boolean;
   /** Cursed Hoard items, drafted separately. */
   cursedHoardItems: boolean;
-  /** Phoenix promo (FR55P). */
-  phoenixPromo: boolean;
 }
 
 export interface RoomSettings {
   expansions: ExpansionConfig;
-  /** Live score preview during play. Default false: computing it is the game. */
-  scorePreview: boolean;
   locale: string;
 }
 
@@ -24,7 +20,7 @@ export interface PublicPlayer {
   connected: boolean;
   /** Server time (epoch ms) the player dropped, or null if connected. */
   disconnectedSince: number | null;
-  /** Cards held. Count only — contents are private until scoring. */
+  /** Cards held. Count only; contents are private until scoring. */
   handCount: number;
   hasVotedToEnd: boolean;
 }

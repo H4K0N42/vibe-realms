@@ -4,7 +4,7 @@
 // never be edited (scripts/sync-engine.mjs re-syncs them from the pinned
 // submodule). They are browser scripts built on process-global singletons:
 //
-//   deck.js     `var deck`     -- .cards is MUTATED IN PLACE by
+//   deck.js     `var deck`        .cards is MUTATED IN PLACE by
 //                                enableCursedHoardSuits(), which `delete`s the
 //                                8 base cards Cursed Hoard replaces.
 //   discard.js  `var discard`
@@ -156,6 +156,44 @@ var __fr = {
     }
 
     return JSON.stringify({ total: total, breakdown: breakdown, code: hand.toString() });
+  },
+
+  // Which cards are dead right now, for a hand that may be over the limit.
+  //
+  // Between drawing and discarding a player legitimately holds eight cards, and
+  // score() refuses that hand: addCard() drops the eighth, so the live "this
+  // card is blanked" hint went blank exactly when it was most useful. Blanking
+  // is a per-card rule ("BLANKS all Armies") that says nothing about how many
+  // cards you hold; only the seat-of-the-hand limit does. So the size gate is
+  // lifted for the duration of this call and nothing else is.
+  //
+  // The override is an own property on the instance, shadowing the prototype
+  // method, and is deleted again in the finally. The vendored files are not
+  // touched, and score() keeps its strict contract: this never returns a total.
+  blanked: function (json) {
+    var req = JSON.parse(json);
+
+    hand.clear();
+    discard.clear();
+    hand._canAdd = function (card) {
+      return card.cursedItem
+        ? this.cursedItems[card.id] === undefined
+        : this.cardsInHand[card.id] === undefined;
+    };
+    try {
+      hand.loadFromArrays(req.hand, req.actions);
+      if (req.discard.length > 0) { discard.loadFromArray(req.discard); }
+      hand.score(discard);
+
+      var out = [];
+      for (var i = 0; i < req.hand.length; i++) {
+        var c = hand.getCardById(req.hand[i]);
+        if (c !== undefined && c.blanked === true) { out.push(req.hand[i]); }
+      }
+      return JSON.stringify({ blanked: out });
+    } finally {
+      delete hand._canAdd;
+    }
   }
 };
 `;
@@ -222,7 +260,7 @@ export class RoomEngine {
       cursedHoardSuits,
       cursedHoardItems,
       playerCount,
-      // deck.js:1533, getCardsBySuit() -- a display-sort helper the server never
+      // deck.js:1533, getCardsBySuit(), a display-sort helper the server never
       // calls. Stubbed only so the file evaluates.
       jQuery: { i18n: { prop: (key) => String(key) } },
     };
@@ -295,6 +333,42 @@ export class RoomEngine {
    * @returns {import('./index.js').ScoreResult}
    */
   score(handCardIds, discardCardIds = [], actionChoices = {}) {
+    const payload = this.#payloadFor(handCardIds, discardCardIds, actionChoices);
+    const result = JSON.parse(this.#call(`__fr.score(${JSON.stringify(payload)})`));
+
+    if (result.error === 'HAND_REJECTED') {
+      throw new Error(
+        `hand rejected by the engine (limit ${result.limit}); dropped: ${result.dropped.join(', ')}`,
+      );
+    }
+    return result;
+  }
+
+  /**
+   * Which of these cards are blanked right now.
+   *
+   * Unlike score(), this tolerates a hand over the limit: between drawing and
+   * discarding a player holds eight cards, and the live "this card is dead"
+   * hint has to keep working through that. It answers only the blanking
+   * question; use score() for anything with a number in it.
+   *
+   * @param {string[]} handCardIds
+   * @param {string[]} [discardCardIds]
+   * @param {Record<string, string | string[]>} [actionChoices]
+   * @returns {string[]} ids of the blanked cards, in the order given
+   */
+  blankedIn(handCardIds, discardCardIds = [], actionChoices = {}) {
+    const payload = this.#payloadFor(handCardIds, discardCardIds, actionChoices);
+    return JSON.parse(this.#call(`__fr.blanked(${JSON.stringify(payload)})`)).blanked;
+  }
+
+  /**
+   * Shared validation for score() and blankedIn(): normalises the ids, rejects
+   * duplicates, overlaps and cards this room's deck does not have, and folds
+   * the action choices into the array-of-arrays the bridge expects.
+   * @returns {string} the JSON payload for a bridge call
+   */
+  #payloadFor(handCardIds, discardCardIds, actionChoices) {
     if (!Array.isArray(handCardIds)) throw new TypeError('handCardIds must be an array');
     if (!Array.isArray(discardCardIds)) throw new TypeError('discardCardIds must be an array');
 
@@ -334,15 +408,7 @@ export class RoomEngine {
       );
     }
 
-    const payload = JSON.stringify({ hand, discard: discardArea, actions });
-    const result = JSON.parse(this.#call(`__fr.score(${JSON.stringify(payload)})`));
-
-    if (result.error === 'HAND_REJECTED') {
-      throw new Error(
-        `hand rejected by the engine (limit ${result.limit}); dropped: ${result.dropped.join(', ')}`,
-      );
-    }
-    return result;
+    return JSON.stringify({ hand, discard: discardArea, actions });
   }
 
   /**

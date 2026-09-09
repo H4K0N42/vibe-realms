@@ -1,4 +1,4 @@
-// Works out, for every card, which other cards it damages -- by asking the real
+// Works out, for every card, which other cards it damages, by asking the real
 // scoring engine instead of reading the rules text.
 //
 // Text is not good enough for this. Blizzard's "BLANKS all Floods" means every
@@ -10,7 +10,7 @@
 // when B ends up BLANKED by A's presence.
 //
 // Only blanking counts. Points alone was too broad: Forge is a Flame, and
-// Blizzard's own "-5 for each Flame" makes Blizzard worth less next to it -- but
+// Blizzard's own "-5 for each Flame" makes Blizzard worth less next to it, but
 // that damage comes from Blizzard's rules, not Forge's, so lighting up Blizzard
 // when hovering Forge points the wrong way. In Fantasy Realms a card only ever
 // reaches across and hurts another by blanking it.

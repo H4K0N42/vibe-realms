@@ -1,5 +1,5 @@
 /**
- * @fr/engine — per-room `node:vm` wrapper around the vendored Fantasy Realms
+ * @fr/engine: a per-room `node:vm` wrapper around the vendored Fantasy Realms
  * scoring engine (`vendor/`, byte-for-byte upstream, never edited).
  *
  * The types below are deliberately standalone: this package has zero runtime
@@ -49,7 +49,7 @@ export interface ScoreBreakdownEntry {
   /**
    * Effective strength. Doppelgänger / Shapeshifter / Mirage copy another card,
    * so this can differ from the printed value. A blanked card keeps its printed
-   * strength here but contributes 0 — see `points`.
+   * strength here but contributes 0. See `points`.
    */
   base: number;
   bonus: number;
@@ -119,6 +119,21 @@ export class RoomEngine {
     discardCardIds?: readonly (CardId | number)[],
     actionChoices?: Readonly<Record<CardId, CardId | string | readonly string[]>>,
   ): ScoreResult;
+
+  /**
+   * Which of these cards are blanked right now, ids in the order given.
+   *
+   * Unlike `score()` this accepts a hand over the limit, for the live hint
+   * shown while a player holds eight cards between drawing and discarding.
+   * Blanking alone; no totals.
+   *
+   * @throws on the same id problems as `score()`, but never on hand size.
+   */
+  blankedIn(
+    handCardIds: readonly (CardId | number)[],
+    discardCardIds?: readonly (CardId | number)[],
+    actionChoices?: Readonly<Record<CardId, CardId | string | readonly string[]>>,
+  ): CardId[];
 
   /** Drop the vm context. Every other member throws afterwards. */
   dispose(): void;

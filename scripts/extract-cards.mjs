@@ -61,7 +61,7 @@ export function loadDeck(deckJsPath) {
   createContext(sandbox);
   runInContext(source, sandbox, { filename: 'deck.js' });
   for (const name of ['base', 'cursedHoard', 'cursedItems', 'ACTION_ORDER']) {
-    if (!sandbox[name]) fail(`deck.js did not define \`${name}\` — did the upstream layout change?`);
+    if (!sandbox[name]) fail(`deck.js did not define \`${name}\` (did the upstream layout change?)`);
   }
   return { sandbox, sha256: createHash('sha256').update(source).digest('hex') };
 }
@@ -114,7 +114,7 @@ export function extractCards(sandbox, suits) {
         // What this card cares about. Upstream keeps these purely so its UI can
         // highlight connections; we use them the same way, to light up the
         // cards a freshly revealed one interacts with.
-        // NOTE: relatedCards holds upstream's ENGLISH names, not ids -- the
+        // NOTE: relatedCards holds upstream's ENGLISH names, not ids; the
         // engine matches on name (hand.contains('Smoke')).
         relatedSuits: Array.isArray(raw.relatedSuits) ? [...raw.relatedSuits] : [],
         relatedCards: Array.isArray(raw.relatedCards) ? [...raw.relatedCards] : [],
@@ -131,8 +131,29 @@ export function extractCards(sandbox, suits) {
     }
   }
 
-  // `replaces` must name a base card that exists — deck.js deletes it from the
-  // live deck in enableCursedHoardSuits().
+  // Upstream files one card name under relatedSuits: Whirlwind, whose "+40 with
+  // Rainstorm and either Blizzard or Great Flood" puts Blizzard and Great Flood
+  // in relatedCards but Rainstorm in relatedSuits. Read literally that says
+  // "every card of the suit Rainstorm", and since the word is painted weather
+  // in the rules text, hovering ANY Weather card lit up the word Rainstorm on
+  // Whirlwind. Moving it to where it belongs fixes both directions at once, and
+  // anything that is neither a suit nor a card name is a genuine surprise.
+  const byName = new Set(cards.map((c) => c.name));
+  for (const card of cards) {
+    const misfiled = card.relatedSuits.filter((s) => !suits.includes(s));
+    if (misfiled.length === 0) continue;
+    const unknown = misfiled.filter((s) => !byName.has(s));
+    if (unknown.length > 0) {
+      fail(`${card.id}: relatedSuits has ${unknown.join(', ')}, neither a suit nor a card name`);
+    }
+    card.relatedSuits = card.relatedSuits.filter((s) => suits.includes(s));
+    for (const name of misfiled) {
+      if (!card.relatedCards.includes(name)) card.relatedCards.push(name);
+    }
+  }
+
+  // `replaces` must name a base card that exists, because deck.js deletes it
+  // from the live deck in enableCursedHoardSuits().
   const byId = new Map(cards.map((c) => [c.id, c]));
   for (const card of cards) {
     if (!card.replaces) continue;

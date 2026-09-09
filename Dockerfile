@@ -15,14 +15,14 @@ RUN npm ci --no-audit --fund=false
 COPY . .
 # The vendored engine and generated card data are checked in, so the build needs
 # no git submodule. Regenerating them from calculator/ is `npm run sync`, run by
-# a human -- deliberately NOT part of the image build, so an image can never
+# a human, deliberately NOT part of the image build, so an image can never
 # silently pick up upstream rule changes.
 RUN npm run build --workspaces --if-present
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-# node:sqlite is built in — no native module build, no compiler in the image.
+# node:sqlite is built in: no native module build, no compiler in the image.
 
 COPY --from=build /app/package.json /app/package-lock.json* ./
 COPY --from=build /app/packages ./packages
@@ -34,7 +34,7 @@ RUN npm ci --omit=dev --no-audit --fund=false && npm cache clean --force
 # The user is created and /data made writable BEFORE anything declares it a
 # volume: Docker discards writes to a VOLUME path in later instructions, so a
 # chown after `VOLUME` silently does nothing and a fresh volume comes up
-# root-owned -- which the non-root user cannot write to.
+# root-owned, which the non-root user cannot write to.
 RUN addgroup -S fr && adduser -S fr -G fr && mkdir -p /data && chown -R fr:fr /data
 
 ENV FR_DATA_DIR=/data

@@ -1,21 +1,27 @@
 // A second pair of hands for manual UI testing: joins a room and plays its own
 // turns (draw from deck, discard the first card). Not a game AI, and not part of
-// the product -- solo play and bots are explicitly out of scope.
+// the product: solo play and bots are explicitly out of scope.
 import { WebSocket } from 'ws';
 
 const BASE = process.env.FR_BASE ?? 'http://127.0.0.1:3000';
 const code = process.argv[2];
 const nickname = process.argv[3] ?? 'Freund';
-if (!code) throw new Error('usage: companion-player.mjs <ROOMCODE> [nickname]');
+// A started game refuses a new player, so coming back after a server restart
+// needs the seat's token. It is printed on join and stored in player_tokens.
+const resumeToken = process.argv[4];
+if (!code) throw new Error('usage: companion-player.mjs <ROOMCODE> [nickname] [resumeToken]');
 
 const ws = new WebSocket(BASE.replace('http', 'ws') + '/ws');
 let me = null;
 let hand = [];
 
-ws.on('open', () => ws.send(JSON.stringify({ t: 'join', roomCode: code, nickname })));
+ws.on('open', () => ws.send(JSON.stringify({ t: 'join', roomCode: code, nickname, resumeToken })));
 ws.on('message', (raw) => {
   const m = JSON.parse(String(raw));
-  if (m.t === 'joined') { me = m.playerId; console.log(`${nickname} joined ${m.roomCode}`); }
+  if (m.t === 'joined') {
+    me = m.playerId;
+    console.log(`${nickname} joined ${m.roomCode} (resume token ${m.resumeToken})`);
+  }
   if (m.t === 'hand') hand = m.cards;
   if (m.t === 'error') console.log(`${nickname} error:`, m.code, m.message);
   if (m.t === 'scores') {

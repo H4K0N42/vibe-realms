@@ -4,12 +4,16 @@ import type { CardId, CardText, TextToken } from '@fr/shared';
 import manifest from '@fr/carddata/i18n/manifest';
 
 import { LOCALE_LOADERS, type LocaleFile } from './locales.ts';
+import { translate, type UiKey } from './ui-strings.ts';
 
 /** Locales we advertise in the picker. Everything else exists but is incomplete. */
 export const PRIMARY_LOCALES = ['de', 'en'] as const;
 
 export interface Dictionary {
   locale: string;
+  /** Strings belonging to the app itself. See ui-strings.ts. */
+  t(key: UiKey, vars?: Record<string, string | number>): string;
+  /** Strings that came with the upstream card data, e.g. the suit names. */
   ui(key: string, fallback?: string): string;
   card(id: CardId): CardText;
   /** True when this locale is missing text for the card and English is standing in. */
@@ -43,6 +47,7 @@ export function useDictionary(locale: string): Dictionary | null {
       if (!alive) return;
       setDict({
         locale,
+        t: (key, vars) => translate(locale, key, vars),
         ui: (key, fallback) => primary.ui[key] ?? english.ui[key] ?? fallback ?? key,
         card: (id) => {
           const own = primary.cards[id];
@@ -59,6 +64,12 @@ export function useDictionary(locale: string): Dictionary | null {
       });
     })();
     return () => { alive = false; };
+  }, [locale]);
+
+  // The document language is part of the translation: it decides how a screen
+  // reader pronounces the page and how the browser hyphenates it.
+  useEffect(() => {
+    document.documentElement.lang = locale;
   }, [locale]);
 
   return dict;

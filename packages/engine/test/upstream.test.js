@@ -1,4 +1,4 @@
-// GENERATED from calculator/js/tests.js -- do not edit by hand.
+// GENERATED from calculator/js/tests.js. Do not edit by hand.
 // Regenerate with: node scripts/gen-upstream-tests.mjs
 //
 // 56 vectors from upstream's own suite, run against RoomEngine.

@@ -69,7 +69,7 @@ const ch = vectors(tail);
 
 writeFileSync(
   join(root, 'packages', 'engine', 'test', 'upstream.test.js'),
-  `// GENERATED from calculator/js/tests.js -- do not edit by hand.
+  `// GENERATED from calculator/js/tests.js. Do not edit by hand.
 // Regenerate with: node scripts/gen-upstream-tests.mjs
 //
 // ${base.length + ch.length} vectors from upstream's own suite, run against RoomEngine.

@@ -216,12 +216,11 @@
     "bonus": true,
     "penalty": false,
     "action": false,
-    "relatedSuits": [
-      "Rainstorm"
-    ],
+    "relatedSuits": [],
     "relatedCards": [
       "Blizzard",
-      "Great Flood"
+      "Great Flood",
+      "Rainstorm"
     ]
   },
   {

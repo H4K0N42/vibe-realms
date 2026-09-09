@@ -19,7 +19,7 @@ interface Props {
 }
 
 /**
- * Some cards ask their holder a question when the hand is scored -- Island picks
+ * Some cards ask their holder a question when the hand is scored. Island picks
  * a Flood or Flame to spare, Book of Changes retypes a card, Doppelganger and
  * Mirage copy one. Scoring waits until every connected holder has answered.
  */
@@ -29,7 +29,7 @@ export function ActionChoices({ hand, dict, answered, send, targets }: Props) {
   if (pending.length === 0) return null;
   return (
     <aside className="actions">
-      <h2>Karten mit Wahl</h2>
+      <h2>{dict.t('action.title')}</h2>
       {pending.map((id) => (
         <ActionChoice key={id} cardId={id} hand={choices} dict={dict} send={send} />
       ))}
@@ -52,23 +52,23 @@ function ActionChoice({ cardId, hand, dict, send }: {
       {text.action ? <p className="hint">{text.action}</p> : null}
       <div className="row">
         <select value={target} onChange={(e) => setTarget(e.target.value)}>
-          <option value="">– Karte wählen –</option>
+          <option value="">{dict.t('action.pickCard')}</option>
           {hand.filter((id) => id !== cardId).map((id) => (
             <option key={id} value={id}>{dict.card(id).name}</option>
           ))}
         </select>
         {needsSuit ? (
           <select value={suit} onChange={(e) => setSuit(e.target.value)}>
-            <option value="">– Gattung –</option>
+            <option value="">{dict.t('action.pickSuit')}</option>
             {SUITS.map((s) => <option key={s} value={s}>{dict.ui(`suit.${s}`, s)}</option>)}
           </select>
         ) : null}
         <button className="primary" disabled={!ready}
                 onClick={() => send({ t: 'resolveAction', cardId, choice: needsSuit ? [target, suit] : [target] })}>
-          Bestätigen
+          {dict.t('action.confirm')}
         </button>
         <button onClick={() => send({ t: 'resolveAction', cardId, choice: null })}>
-          Nicht nutzen
+          {dict.t('action.decline')}
         </button>
       </div>
     </div>

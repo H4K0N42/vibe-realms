@@ -1,5 +1,5 @@
 // Adapter between the game state machine and the vendored scoring engine.
-// One RoomEngine (one node:vm context) per room -- see DESIGN.md "Engine reuse".
+// One RoomEngine (one node:vm context) per room. See DESIGN.md "Engine reuse".
 import { RoomEngine } from '@fr/engine';
 import type { CardId, ExpansionConfig, PlayerScore } from '@fr/shared';
 
@@ -18,6 +18,8 @@ export interface RoomEngineHandle {
     discard: CardId[],
     choices?: Record<CardId, string[]>,
   ): { total: number; breakdown: PlayerScore['breakdown'] };
+  /** Blanked cards only, and unlike scoreHand it accepts an over-full hand. */
+  blankedIn(hand: CardId[], discard: CardId[], choices?: Record<CardId, string[]>): CardId[];
   dispose(): void;
 }
 
@@ -25,7 +27,6 @@ export function createEngine(expansions: ExpansionConfig, playerCount: number): 
   const engine = new RoomEngine({
     cursedHoardSuits: expansions.cursedHoardSuits,
     cursedHoardItems: expansions.cursedHoardItems,
-    phoenixPromo: expansions.phoenixPromo,
     playerCount,
   });
 
@@ -39,17 +40,29 @@ export function createEngine(expansions: ExpansionConfig, playerCount: number): 
     handLimit: () => engine.handLimit,
     actionCardIds: () => new Set(all.filter((c) => c.action).map((c) => c.id)),
     scoreHand(hand, discard, choices = {}) {
-      // Only pass choices for cards actually held, and drop empty ones: the
-      // engine throws if a choice names a card that is not in the hand.
-      const relevant: Record<string, string[]> = {};
-      for (const [cardId, choice] of Object.entries(choices)) {
-        if (hand.includes(cardId) && choice.length > 0) relevant[cardId] = choice;
-      }
-      const result = engine.score(hand, discard, relevant);
+      const result = engine.score(hand, discard, relevantChoices(hand, choices));
       return { total: result.total, breakdown: result.breakdown };
+    },
+    blankedIn(hand, discard, choices = {}) {
+      return engine.blankedIn(hand, discard, relevantChoices(hand, choices));
     },
     dispose: () => engine.dispose(),
   };
+}
+
+/**
+ * Only the choices for cards actually held, with the empty ones dropped: the
+ * engine throws if a choice names a card that is not in the hand.
+ */
+function relevantChoices(
+  hand: CardId[],
+  choices: Record<CardId, string[]>,
+): Record<string, string[]> {
+  const relevant: Record<string, string[]> = {};
+  for (const [cardId, choice] of Object.entries(choices)) {
+    if (hand.includes(cardId) && choice.length > 0) relevant[cardId] = choice;
+  }
+  return relevant;
 }
 
 /** Fisher-Yates. `rand` is injectable so tests can be deterministic. */

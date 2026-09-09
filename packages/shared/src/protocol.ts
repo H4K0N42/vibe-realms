@@ -24,7 +24,12 @@ export type ClientMessage =
    * to change it to. Most cards take one. `null` declines to use the card.
    */
   | { t: 'resolveAction'; cardId: CardId; choice: string[] | null }
-  | { t: 'voteEndGame'; vote: boolean };
+  | { t: 'voteEndGame'; vote: boolean }
+  /**
+   * Play again with the same people in the same room: back to the lobby with
+   * everyone still seated, so nobody has to pass the code around twice.
+   */
+  | { t: 'rematch' };
 
 /** Server -> client. */
 export type ServerMessage =
@@ -33,7 +38,7 @@ export type ServerMessage =
   /**
    * Your own hand. Never broadcast.
    * `blanked` is which of those cards are currently blanked by the rest of the
-   * hand -- shown permanently, so you can see a dead card without waiting for
+   * hand, shown permanently, so you can see a dead card without waiting for
    * the scoring. Private, like the hand itself.
    */
   | { t: 'hand'; cards: CardId[]; blanked: CardId[] }

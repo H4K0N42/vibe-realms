@@ -4,6 +4,8 @@ import type { TextToken } from '@fr/shared';
 
 /** How the hovered card relates to every other card, in both directions. */
 export interface TextMatch {
+  /** The hovered card itself, so it can be left out of its own highlighting. */
+  id: string;
   suit: string;
   /** Display name in the current locale, as it appears inside other cards. */
   name: string;
@@ -21,8 +23,8 @@ export interface TextMatch {
 
 /**
  * @param namedCards display names this card's text mentions as specific cards.
- *   A named card is painted in its own suit colour -- Cavern's "Dwarvish
- *   Infantry" is drawn as an Army -- so without this, hovering any Army would
+ *   A named card is painted in its own suit colour (Cavern's "Dwarvish
+ *   Infantry" is drawn as an Army), so without this, hovering any Army would
  *   light it up, even though Cavern means that one card and nothing else.
  */
 export function matches(

@@ -25,7 +25,7 @@ interface Delta {
 
 /**
  * What the newest card did to the cards already face up. Fantasy Realms scoring
- * is not additive -- a card can blank earlier ones, or rescue them -- so each
+ * is not additive: a card can blank earlier ones, or rescue them, so each
  * step is a fresh scoring and the interesting part is the difference.
  */
 function deltasFor(reveal: PublicReveal, index: number): Delta[] {
@@ -93,9 +93,9 @@ export function RevealStage({ reveal, state, dict, myPlayerId, send }: Props) {
     <main className="reveal">
       <header className="reveal-head">
         <p className="reveal-who">
-          {owner?.nickname ?? '—'}
+          {owner?.nickname ?? '?'}
           <span className="reveal-progress"> · {reveal.playerIndex + 1}/{reveal.playerCount}</span>
-          {owner?.connected === false ? <span className="badge">offline</span> : null}
+          {owner?.connected === false ? <span className="badge">{dict.t('table.offline')}</span> : null}
         </p>
         <p className={`reveal-total${total < 0 ? ' negative' : ''}`}>{shownTotal}</p>
       </header>
@@ -124,8 +124,8 @@ export function RevealStage({ reveal, state, dict, myPlayerId, send }: Props) {
               {delta ? (
                 // Keyed by step so it remounts and replays on every new card.
                 <div key={`${latest}-${delta.cardId}`} className="delta-float">
-                  {delta.blankedNow ? <span className="d-blank">BLOCKIERT</span> : null}
-                  {delta.unblankedNow ? <span className="d-unblank">frei!</span> : null}
+                  {delta.blankedNow ? <span className="d-blank">{dict.t('reveal.blanked')}</span> : null}
+                  {delta.unblankedNow ? <span className="d-unblank">{dict.t('reveal.freed')}</span> : null}
                   {delta.bonus ? <span className="d-pos">+{delta.bonus}</span> : null}
                   {delta.penalty ? <span className="d-neg">{delta.penalty}</span> : null}
                 </div>
@@ -144,10 +144,10 @@ export function RevealStage({ reveal, state, dict, myPlayerId, send }: Props) {
         {!reveal.complete ? (
           mayDrive ? (
             <button className="primary" onClick={() => send({ t: 'revealNext' })}>
-              Nächste Karte aufdecken ({reveal.steps.length}/{reveal.handSize})
+              {dict.t('reveal.next', { have: reveal.steps.length, total: reveal.handSize })}
             </button>
           ) : (
-            <p className="hint">{owner?.nickname} deckt auf…</p>
+            <p className="hint">{dict.t('reveal.watching', { name: owner?.nickname ?? '' })}</p>
           )
         ) : null}
       </section>
@@ -167,11 +167,12 @@ export function RevealStage({ reveal, state, dict, myPlayerId, send }: Props) {
             />
           ) : null}
           {needsChoices && !isOwner ? (
-            <p className="hint">{owner?.nickname} wählt noch Karten aus…</p>
+            <p className="hint">{dict.t('reveal.choosing', { name: owner?.nickname ?? '' })}</p>
           ) : null}
           {!needsChoices && mayDrive ? (
             <button className="primary" onClick={() => send({ t: 'revealFinish' })}>
-              {reveal.playerIndex + 1 < reveal.playerCount ? 'Nächster Spieler' : 'Endstand zeigen'}
+              {reveal.playerIndex + 1 < reveal.playerCount
+                ? dict.t('reveal.nextPlayer') : dict.t('reveal.showScores')}
             </button>
           ) : null}
         </section>

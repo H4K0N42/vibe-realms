@@ -9,8 +9,7 @@ import { openStore, type Store } from '../src/db.ts';
 import { addPlayer, createRoom, setConnected, startGame } from '../src/game.ts';
 
 const SETTINGS: RoomSettings = {
-  expansions: { cursedHoardSuits: false, cursedHoardItems: false, phoenixPromo: false },
-  scorePreview: false,
+  expansions: { cursedHoardSuits: false, cursedHoardItems: false },
   locale: 'de',
 };
 const DECK = Array.from({ length: 53 }, (_, i) => `FR${String(i + 1).padStart(2, '0')}`);

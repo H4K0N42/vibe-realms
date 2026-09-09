@@ -11,7 +11,7 @@ interface Props {
   dict: Dictionary;
   selected?: boolean;
   dragging?: boolean;
-  /** Name, strength and suit only -- used where cards are shown many at a time. */
+  /** Name, strength and suit only, used where cards are shown many at a time. */
   compact?: boolean;
   /** Hovered card elsewhere on the table; references to it light up here. */
   match?: TextMatch | null;
@@ -35,9 +35,12 @@ export function Card({ id, dict, selected, dragging, compact, match, blanked, on
     return names;
   }, [def, dict]);
 
-  // Does this card's rules text mention the hovered one?
+  // Does this card's rules text mention the hovered one? The hovered card is
+  // excluded from its own answer: a Flame that reads "for each other Flame"
+  // means the ones around it, and lighting up its own text only says that the
+  // word matches the chip directly above it.
   const textLit =
-    !!match &&
+    !!match && match.id !== id &&
     [...(text.bonus ?? []), ...(text.penalty ?? [])].some((t) => matches(t, match, namedCards));
   // ...and the other way round: does the hovered card's text mention this one?
   // "+20 for each Army" should light up the word ARMY on every Army card.
@@ -57,7 +60,7 @@ export function Card({ id, dict, selected, dragging, compact, match, blanked, on
     .reduce((n, t) => n + (t.kind === 'break' ? 0 : t.value.length), 0);
   const density = textLength > 210 ? ' text-xs' : textLength > 140 ? ' text-sm' : '';
   // The sweep keeps running after the match is gone, so the last one is kept
-  // alive until the pass finishes -- otherwise there is nothing left to light.
+  // alive until the pass finishes; otherwise there is nothing left to light.
   const lastMatch = useRef<TextMatch | null>(null);
   if (lit && match) lastMatch.current = match;
   const shown = lit ? match : sweeping ? lastMatch.current : null;
@@ -67,7 +70,7 @@ export function Card({ id, dict, selected, dragging, compact, match, blanked, on
       className={`card suit-border-${suit}${selected ? ' card-selected' : ''}${dragging ? ' card-dragging' : ''}${compact ? ' card-compact' : ''}${compact ? '' : density}${harmed && sweeping ? ' card-harmed' : ''}${blanked ? ' card-blanked' : ''}`}
       onClick={onClick ? () => onClick(id) : undefined}
       // animationiteration bubbles, so one handler on the card covers every
-      // highlighted part of it -- rules text, suit chip and name alike. They
+      // highlighted part of it: rules text, suit chip and name alike. They
       // start together and stay in step.
       onAnimationIteration={(e) => {
         // Text sweeps and the chip pulse both count: a card may be lit by only
@@ -87,7 +90,7 @@ export function Card({ id, dict, selected, dragging, compact, match, blanked, on
       {blanked ? (
         <>
           <span className="strike" />
-          <span className="blank-label">blockiert</span>
+          <span className="blank-label">{dict.t('card.blanked')}</span>
         </>
       ) : null}
       {compact ? null : (
