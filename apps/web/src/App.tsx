@@ -19,6 +19,14 @@ import { useGame } from './useGame.ts';
 
 const localeKey = 'fr:locale';
 
+/**
+ * The place the hand opens for a card being dragged into it. Not the card's own
+ * id: a card coming from the draw pile is face down and has no identity yet,
+ * and one coming from the discard area is still lying there until the server
+ * says otherwise, so it cannot be in two rows at once.
+ */
+const INCOMING = '__incoming__';
+
 export default function App() {
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
@@ -219,11 +227,11 @@ function Room({ code, nickname, dict, locale, setLocale, onLeave }: {
       // Cards stay draggable when the move is not yours to make, because
       // picking one up is how you read it, so legality is decided on release.
       if (from === 'deck' && to === 'hand' && canDraw) {
-        game.send({ t: 'draw', from: 'deck' });
+        game.send({ t: 'draw', from: 'deck', index: index ?? undefined });
         return;
       }
       if (from === 'discard' && to === 'hand' && cardId && canDraw) {
-        game.send({ t: 'draw', from: 'discard', cardId });
+        game.send({ t: 'draw', from: 'discard', cardId, index: index ?? undefined });
         return;
       }
       if (from === 'hand' && to === 'discard' && cardId && canDiscard) {
@@ -244,10 +252,19 @@ function Room({ code, nickname, dict, locale, setLocale, onLeave }: {
   // the whole reason the preview is worth having. Both sit above the early
   // returns below: a hook that only some phases reach is not a hook.
   const shown = (() => {
-    if (!drag || drag.from !== 'hand' || drag.over !== 'hand' || drag.overIndex === null) return order;
-    const without = order.filter((c) => c !== drag.cardId);
-    const at = Math.min(drag.overIndex, without.length);
-    return [...without.slice(0, at), drag.cardId!, ...without.slice(at)];
+    if (!drag || drag.over !== 'hand' || drag.overIndex === null) return order;
+    if (drag.from === 'hand') {
+      const without = order.filter((c) => c !== drag.cardId);
+      const at = Math.min(drag.overIndex, without.length);
+      return [...without.slice(0, at), drag.cardId!, ...without.slice(at)];
+    }
+    // Coming in from the draw pile or the discard area: the hand opens a place
+    // for it, so it snaps to the cards either side exactly as a rearrangement
+    // does, and the place it opens is the place the card will actually take. No
+    // place is offered for a draw that would be refused.
+    if (!canDraw) return order;
+    const at = Math.min(drag.overIndex, order.length);
+    return [...order.slice(0, at), INCOMING, ...order.slice(at)];
   })();
   const handRow = useRef<HTMLDivElement>(null);
   useFlipRow(handRow, shown.join());
@@ -403,12 +420,19 @@ function Room({ code, nickname, dict, locale, setLocale, onLeave }: {
                  data-zone="hand">
           <div className="cards" ref={handRow}>
             {shown.map((id, i) => (
-              <CardSlot key={id} id={id} zone="hand" handSlot dict={dict} match={match}
-                        begin={begin} drag={drag}
-                        blanked={game.blanked.includes(id)}
-                        hovered={hovered} setHovered={setHovered} setOpened={setOpened}
-                        onEnter={canDiscard ? () => game.send({ t: 'discard', cardId: id }) : null}
-                        onMove={(delta) => moveInHand(id, i + delta)} />
+              id === INCOMING ? (
+                // A space waiting for a card, not a card: it counts as a cell
+                // for the drag engine, which is what the arriving card snaps to.
+                <div key={INCOMING} className="slot slot-incoming" aria-hidden="true"
+                     data-hand-slot data-drag-placeholder />
+              ) : (
+                <CardSlot key={id} id={id} zone="hand" handSlot dict={dict} match={match}
+                          begin={begin} drag={drag}
+                          blanked={game.blanked.includes(id)}
+                          hovered={hovered} setHovered={setHovered} setOpened={setOpened}
+                          onEnter={canDiscard ? () => game.send({ t: 'discard', cardId: id }) : null}
+                          onMove={(delta) => moveInHand(id, i + delta)} />
+              )
             ))}
           </div>
           <p className="hint keyboard-hint">{dict.t('table.keyboardHint')}</p>
@@ -468,8 +492,11 @@ function CardSlot({
       {...(dragged ? {} : { 'data-flip-id': id })}
       // The gap the ghost is being pulled towards: the engine reads this rather
       // than working out where the card would land, so the magnet and the row
-      // can never disagree about it.
-      {...(dragged ? { 'data-drag-placeholder': true } : {})}
+      // can never disagree about it. Only a hand slot can be one. A card being
+      // dragged out of the discard area is also faded, but it is where the card
+      // came from, and marking it too would have the engine find that one first
+      // and pull the card back towards the place it is being taken from.
+      {...(dragged && handSlot ? { 'data-drag-placeholder': true } : {})}
       role="button"
       tabIndex={0}
       aria-label={aria}

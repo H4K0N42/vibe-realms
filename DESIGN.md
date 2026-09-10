@@ -255,6 +255,25 @@ also gathers the card under the hand that picked it up. It is the resulting lag
 that produces the rest of the feel for free: the card trails a fast hand, and
 its tilt is that lag, up to 9 degrees at 100px behind, straight again at rest.
 
+**Taking a card into the hand.** A card dragged in from the draw pile or the
+discard area goes where it is dropped, so the `draw` message carries an `index`.
+Without it the server appended, and no amount of animation could hide that the
+card had landed somewhere else than where it was let go. Omitting the index
+still means the end of the hand, which is what Enter does. The index is
+clamped and anything that is not a whole number in range is treated as
+"no answer", because it arrives from a client.
+
+The hand also opens a real place for it, an outline rather than a card, marked
+as the gap the same way a rearrangement's faded card is. That is what gives an
+arriving card something to snap to, and it means the place you can see is the
+place the card will take. No place is offered for a draw that would be refused.
+
+The hold fades out with how fast the pointer is moving: fully there below
+260px/s, gone above 1100px/s. Detents are for putting a card down deliberately,
+and a throw starts inside the hand, so without this a fling was caught by every
+cell it crossed on the way out. The speed measured is the pointer's, not the
+card's, since the card is the thing being held back.
+
 **The magnet.** While a card is over somewhere it could land, its target is
 blended towards the exact place it would occupy, by up to 55%, ramped with a
 smoothstep so the pull has no edge to it. Reach is a multiple of the card's own
@@ -275,7 +294,18 @@ visible at once. A refused drop flies back to where it was picked up instead.
 between cells in one paint and no CSS transition can catch that. `flip.ts`
 measures each card before and after and animates the difference away (the FLIP
 technique), with Web Animations rather than transitions so it starts reliably
-without a forced reflow. Three details matter:
+without a forced reflow.
+
+The slide is a spring like everything else in the drag, sampled into keyframes
+at 10ms and handed over as a linear animation, because the timing is in the
+samples. Two beziers were tried first and both were wrong: front loaded, the row
+snapped shut and crept the rest of the way; eased at both ends, it was simply
+slow. The spring is 93% of the way there by 80ms, tips about 5% past and settles
+by 280ms. The overshoot being a proportion means a card moving one place tips
+past it by a few pixels and one crossing the whole hand by more, which is what
+gives a big rearrangement some weight.
+
+Three details matter:
 
 - A card already in flight is measured for how far it has been carried, and that
   is added back in, otherwise every crossing compounds the error until the row
@@ -288,6 +318,11 @@ without a forced reflow. Three details matter:
   to have slid, which reads as the row giving up on following you.
 - The card being dragged is left out of the sliding entirely, since the ghost is
   what moves and its gap has to hold still.
+
+Only a hand slot is ever marked as the gap. A card being dragged out of the
+discard area is faded in the same way, but that is where it came *from*; marking
+it too meant the engine found that one first and pulled the card back towards
+the place it was being taken from.
 
 Under `prefers-reduced-motion` the card is simply placed at the pointer, with no
 spring, tilt, lift, flight home, or sliding neighbours.
@@ -331,8 +366,12 @@ Cards have a **hardcoded 5:7 aspect ratio** so a long rules text can never
 stretch one into a tall column. The width is deliberately generous (up to
 9.2rem, ~141px at desktop width) to fit more text per line; the page is allowed
 to grow to 1420px so eight of them still sit in one row. Text that would not fit is handled by stepping
-the type down (two thresholds, by character count) rather than by clipping;
-whatever still overflows fades out, and Space opens the card in full.
+the type down (two thresholds, by character count) rather than by clipping, and
+Space opens the card in full. Whatever still overflows is simply cut off: the
+bottom of the body used to fade under a mask, but that dimmed the last lines of
+every card whether anything was being cut or not, and at the two smaller sizes
+almost nothing is (five of 102 cards run past 210 characters in German, Lantern
+worst at 324). Removed at Hagen's call (2026-09-10).
 
 Hovering used to drop the ratio and let the card grow over its neighbours to
 show that tail. It does not any more: a hand is a row of identical rectangles,
@@ -388,10 +427,19 @@ second rose-coloured near-miss exists anywhere.
 
 ### Blanked cards, live
 
-A card that is dead *right now* is shown red and struck through permanently, not
+A card that is dead *right now* glows red and is struck through permanently, not
 only on hover. The server asks the engine on every update and sends the blanked
 ids alongside the private `hand` message, so it never reaches anyone else. Same
 treatment during play and during the reveal.
+
+The red has one job at a time. Hovering a card that blanks things (Blizzard,
+Great Flood, the nineteen in `harm.json`) hands the red over to exactly the cards
+that one kills, and every other card gives it up for as long as the hover lasts,
+including cards that are themselves dead. Two sets of red at once would be two
+different claims in the same colour. Those cards keep their line through them at
+a third of the opacity, so the fact is still on screen; taking it away would say
+they had come back to life. `.card-blanked` is therefore the dead treatment and
+`.card-alarm` is the red, and only the second one moves around.
 
 This goes through `RoomEngine.blankedIn()`, not `score()`. Between drawing and
 discarding a player holds **eight** cards, and `score()` refuses that hand:
@@ -572,8 +620,8 @@ to pick a card up, so a card can be examined even when the move is not yours.
 **Long rules text has a way out.** A fixed aspect ratio clips Jewel of Order and
 the Phoenix; on a mouse that was covered by growing the card on hover, which does
 not exist on touch and cannot be reached from a keyboard. A tap (a press that
-never breaks loose into a drag) or Space opens `CardOverlay`: same card, no ratio,
-no mask.
+never breaks loose into a drag) or Space opens `CardOverlay`: same card, no
+ratio, no clipping.
 
 **Whose turn it is, in words.** A blue ring around a name chip was the only
 signal, and it never said *who*. There is now a banner, "Freund ist am Zug",

@@ -13,10 +13,50 @@ import { useLayoutEffect, type RefObject } from 'react';
  * A Web Animation rather than a transition, because it starts reliably without
  * a forced reflow and never fights the class-driven styles on the same element.
  */
-const DURATION = 260;
-// Most of the distance is covered early: the arrangement reads as settled well
-// before it stops moving, which is what makes it feel quick rather than slow.
-const EASING = 'cubic-bezier(.22, 1, .36, 1)';
+// A spring, not a curve. Both earlier attempts were beziers and both were wrong
+// in the same way: front loaded, the row snapped shut and crept the rest of the
+// way; eased at both ends, it was simply slow. What the movement wants is to
+// arrive quickly, go a little past and come back, which no bezier does and a
+// spring does for free.
+//
+// Slightly underdamped, so the overshoot is a few percent of however far the
+// card had to travel: a card moving one place along tips past it by a handful of
+// pixels, and one crossing the whole hand by a little more, which is what makes
+// a big rearrangement feel like it carried some weight.
+const SPRING_K = 1100;
+const SPRING_ZETA = 0.68;
+const SAMPLE_MS = 10;
+
+/**
+ * The spring's progress from 0 (where the card was) to 1 (where it belongs),
+ * sampled onto an even grid so it can be handed to the animation as keyframes.
+ * Sampled once: the shape does not depend on how far any particular card has to
+ * go, only the distance it gets multiplied by does.
+ */
+function springProgress(k: number, zeta: number): number[] {
+  const c = 2 * Math.sqrt(k) * zeta;
+  const step = 1 / 600;
+  const perSample = Math.round((SAMPLE_MS / 1000) / step);
+  const out = [0];
+  let p = 0;
+  let v = 0;
+  // Long enough for this spring to be over, and capped so a bad constant cannot
+  // produce an animation that outlives the drag it belongs to.
+  for (let i = 1; i <= 60 * perSample; i++) {
+    v += (-k * (p - 1) - c * v) * step;
+    p += v * step;
+    if (i % perSample === 0) {
+      out.push(p);
+      // Arrived and stopped moving: everything after this is invisible.
+      if (Math.abs(1 - p) < 0.002 && Math.abs(v) < 0.06) break;
+    }
+  }
+  out[out.length - 1] = 1;
+  return out;
+}
+
+const PROGRESS = springProgress(SPRING_K, SPRING_ZETA);
+const DURATION = (PROGRESS.length - 1) * SAMPLE_MS;
 
 /** Where every card was last time, per row. Keyed by the element, so a remount starts fresh. */
 const seen = new WeakMap<HTMLElement, Map<string, DOMRect>>();
@@ -89,8 +129,13 @@ export function useFlipRow(row: RefObject<HTMLElement | null>, order: string) {
 
       running.get(item)?.cancel();
       running.set(item, item.animate(
-        [{ transform: `translate3d(${dx}px, ${dy}px, 0)` }, { transform: 'translate3d(0, 0, 0)' }],
-        { duration: DURATION, easing: EASING },
+        PROGRESS.map((p, i) => ({
+          offset: i / (PROGRESS.length - 1),
+          transform: `translate3d(${dx * (1 - p)}px, ${dy * (1 - p)}px, 0)`,
+        })),
+        // Linear between samples: the shape is in the samples themselves, and
+        // any easing on top of them would be a second opinion about the timing.
+        { duration: DURATION, easing: 'linear' },
       ));
     }
   }, [row, order]);

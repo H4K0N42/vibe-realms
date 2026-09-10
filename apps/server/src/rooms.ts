@@ -134,7 +134,7 @@ export class RoomManager {
         break;
       }
       case 'draw':
-        draw(room.state, playerId, message.from, message.cardId, now);
+        draw(room.state, playerId, message.from, message.cardId, now, message.index);
         break;
       case 'discard':
         discard(room.state, playerId, message.cardId, now);

@@ -319,6 +319,15 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
             background: color-mix(in srgb, var(--accent) 7%, transparent);
             border-style: solid; }
 
+/* The place the hand opens for a card being dragged into it from somewhere
+   else. Outlined rather than filled, in the colour of a live drop target: it is
+   a space that is about to be taken, and the ghost overhead is the card. */
+.slot-incoming {
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
 /* The card left behind while its ghost is under the pointer. It stays like this
    through the flight home as well, and the ghost fades out onto it. */
 .is-dragging { opacity: .22; filter: grayscale(1); transition: opacity .18s ease; }
@@ -358,15 +367,28 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
    Code's destructive colour. A card blanked by the server right now and a card
    the hovered one would blank are tinted identically; the difference is in
    what you did to see it, not in what it means. */
-.card-blanked,
-.card-harmed {
+/* The red itself, on whatever deserves it at this moment: every dead card
+   normally, and while a card that blanks things is hovered, exactly the cards
+   it kills. It glows rather than only tinting, so a dead card is findable in a
+   row of eight without reading any of them. */
+.card-alarm {
+  --alarm-line: color-mix(in srgb, var(--danger) 70%, transparent);
+  --alarm-glow: 0 0 0 1px color-mix(in srgb, var(--danger) 55%, transparent),
+                0 0 18px -6px var(--danger);
   background: color-mix(in srgb, var(--danger) 22%, var(--panel));
-  border-color: color-mix(in srgb, var(--danger) 70%, transparent);
-  transition: background .35s ease, border-color .35s ease;
+  border-color: var(--alarm-line);
+  box-shadow: var(--alarm-glow);
+  transition: background .35s ease, border-color .35s ease, box-shadow .35s ease;
 }
+/* Dead: struck through and stepped back, whether or not it is the card being
+   asked about right now. */
 .card-blanked .card-body,
 .card-blanked .card-name,
 .card-blanked .card-strength { opacity: .55; }
+/* ...and while the red is busy answering about another card, the line stays but
+   goes quiet. Losing it altogether would say the card had come back to life. */
+.card-blanked:not(.card-alarm) .strike,
+.card-blanked:not(.card-alarm) .blank-label { opacity: .3; }
 .strike {
   position: absolute; left: 6%; right: 6%; top: 50%; height: 2px;
   background: var(--danger); transform-origin: left center; transform: scaleX(0);
@@ -501,6 +523,12 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--suit-ink, var(--accent)) 45%, transparent),
               0 0 14px -8px var(--suit-ink, var(--accent));
 }
+/* Equally specific and later, so it wins: a dead card does not stop being dead
+   because the pointer happens to be resting on it. */
+.slot.is-hovered .card-alarm {
+  border-color: var(--alarm-line);
+  box-shadow: var(--alarm-glow);
+}
 
 @media (prefers-reduced-motion: reduce) {
   /* No travelling light; the reference just sits at its bright colour. */
@@ -512,12 +540,12 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .card.text-xs .card-body { font-size: .6rem;  line-height: 1.22; }
 .card.text-xs .card-name { font-size: .78rem; }
 
-/* Whatever still does not fit fades out, so it never looks like the rule ends. */
-.card-body {
-  overflow: hidden;
-  mask-image: linear-gradient(#000 78%, transparent 100%);
-  -webkit-mask-image: linear-gradient(#000 78%, transparent 100%);
-}
+/* No fade on the last lines. It was there so that text which does not fit never
+   looks like the rule ends there, but it dimmed the bottom of every card whether
+   anything was being cut off or not, which is most of them. Overflow is still
+   hidden: without it a long rule would run out over the cards either side.
+   Space, or a tap, opens the card in full. */
+.card-body { overflow: hidden; }
 
 /* The hovered card used to drop the ratio and grow over its neighbours to show
    the clipped tail of its text. It keeps its size now; Space opens the card in
@@ -526,8 +554,10 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .slot.is-hovered { z-index: 20; }
 
 /* --- what a card blanks --------------------------------------------------- */
-/* Hovering Blizzard ("BLANKS all Floods") turns every Flood on the table red.
-   Styled together with .card-blanked above, so both reds are the same red. */
+/* Hovering Blizzard ("BLANKS all Floods") turns every Flood on the table red,
+   and takes the red away from everything else for as long as it is hovered, so
+   the answer on screen is only ever about one card at a time. Both cases wear
+   the same .card-alarm above, because it is the same statement. */
 
 /* --- app bar --------------------------------------------------------------- */
 /* Which room you are in, how to invite someone, the language, and the way out.
@@ -584,6 +614,6 @@ button.room-code { display: inline-flex; align-items: center; gap: .5rem; }
   overflow: visible; box-shadow: 0 24px 60px #000c;
 }
 .card-overlay .card .card-body {
-  overflow: visible; mask-image: none; -webkit-mask-image: none; font-size: .9rem;
+  overflow: visible; font-size: .9rem;
 }
 .card-overlay .card-name { font-size: 1.15rem; }

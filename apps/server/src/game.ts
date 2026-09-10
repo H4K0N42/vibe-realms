@@ -236,6 +236,7 @@ export function draw(
   from: 'deck' | 'discard',
   cardId: CardId | undefined,
   now: number,
+  index?: number,
 ): CardId {
   const player = requireTurn(state, id);
   if (player.drawnThisTurn) throw new GameError('ILLEGAL_MOVE', 'already drew this turn');
@@ -251,7 +252,12 @@ export function draw(
     if (idx === -1) throw new GameError('ILLEGAL_MOVE', 'card is not in the discard area');
     drawn = state.discard.splice(idx, 1)[0]!;
   }
-  player.hand.push(drawn);
+  // Where it was dropped, if the client said. Anything else, including the
+  // nonsense an untrusted client is free to send, means the end of the hand.
+  const at = Number.isInteger(index) && index! >= 0 && index! <= player.hand.length
+    ? index!
+    : player.hand.length;
+  player.hand.splice(at, 0, drawn);
   player.drawnThisTurn = true;
   state.lastActionAt = now;
   return drawn;

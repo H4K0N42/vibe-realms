@@ -51,6 +51,15 @@ export function Card({ id, dict, selected, dragging, compact, match, blanked, on
   // it is the engine's identity key regardless of display language.
   const nameLit = !!match && !!def && match.refCardNames.has(def.name);
   const lit = textLit || chipLit || nameLit || harmed;
+
+  // Red means dead, and it stays on for as long as a card is dead. The one
+  // exception is hovering a card that blanks things: while that lasts the red
+  // is answering a different question, namely which cards THAT one kills, so
+  // every card gives it up except those. Cards that are themselves blanked give
+  // it up too; they keep the line through them, so the fact is still on screen,
+  // it is just not what is being pointed at.
+  const asking = !!match && match.harms.size > 0;
+  const alarm = asking ? harmed : !!blanked;
   const { sweeping, settle } = useSweep(lit);
 
   // A fixed aspect ratio means long rules text would be clipped (Phoenix is the
@@ -67,7 +76,7 @@ export function Card({ id, dict, selected, dragging, compact, match, blanked, on
 
   return (
     <div
-      className={`card suit-border-${suit}${selected ? ' card-selected' : ''}${dragging ? ' card-dragging' : ''}${compact ? ' card-compact' : ''}${compact ? '' : density}${harmed && sweeping ? ' card-harmed' : ''}${blanked ? ' card-blanked' : ''}`}
+      className={`card suit-border-${suit}${selected ? ' card-selected' : ''}${dragging ? ' card-dragging' : ''}${compact ? ' card-compact' : ''}${compact ? '' : density}${blanked ? ' card-blanked' : ''}${alarm ? ' card-alarm' : ''}`}
       onClick={onClick ? () => onClick(id) : undefined}
       // animationiteration bubbles, so one handler on the card covers every
       // highlighted part of it: rules text, suit chip and name alike. They

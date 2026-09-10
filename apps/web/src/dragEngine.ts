@@ -24,24 +24,54 @@ const LIFT_DIST = 16;     // ...or moved this far
 // critical: just under 1 settles in about 150ms with an overshoot too small to
 // see, which is the snappy end of the range rather than the springy one.
 const FOLLOW_K = 900;
-const FOLLOW_C = 2 * Math.sqrt(FOLLOW_K) * 0.82;
-// The flight home is stiffer and exactly critical: it hands over to the real
-// card sitting in that place, and a bounce there would read as two cards.
+const FOLLOW_C = 2 * Math.sqrt(FOLLOW_K) * 0.7;
+// The flight home is stiffer, and how damped it is depends on how hard the card
+// was thrown: set down gently it is exactly critical and simply arrives, thrown
+// across the table it is loose enough to go slightly past its place and come
+// back. Both ends are deliberately understated. A card that visibly boings has
+// stopped being a card and started being a demo of a spring.
 const LAND_K = 1500;
-const LAND_C = 2 * Math.sqrt(LAND_K);
+const LAND_ZETA_STILL = 1;
+const LAND_ZETA_THROWN = 0.7;
+const THROW_SPEED = 2600;  // px/s at which the landing is at its loosest, which is
+                           // fast enough that an ordinary drag never gets there
 const STEP = 1 / 240;     // sub-steps, so one long frame cannot blow a spring up
 const MAX_FRAME = 0.05;   // ...and neither can a tab returning from the background
 
 const LIFT_SCALE = 1.06;  // how much bigger the card is once it is off the table
+// The size settles on its own spring, always critically damped: a card that
+// throbs while it is being carried looks like a mistake, whatever the position
+// underneath it is doing.
+const LIFT_K = 1500;
+const LIFT_C = 2 * Math.sqrt(LIFT_K);
 const TILT_PER_PX = 0.09; // degrees of tilt per pixel the card trails behind
 const TILT_MAX = 9;
 const MAGNET = 0.55;      // how far towards the landing place the card is pulled
 // ...and from how far away, as a multiple of the card's own width, so it scales
-// with the layout instead of with the screen. A gap in the hand is already
-// under the pointer and only wants a nudge; the discard area is one destination
-// for a whole corner of the table, so the card starts homing in much earlier.
-const REACH_IN_HAND = 1.5;
+// with the layout instead of with the screen. The discard area is one
+// destination for a whole corner of the table, so a card starts homing in on it
+// from a long way off.
 const REACH_TO_DISCARD = 2.5;
+
+// A card sitting in a gap in the hand behaves differently from one being drawn
+// towards a target: it is *in* a place, and it stays there. The pull holds
+// nearly firm until the pointer has been dragged most of a cell away and then
+// gives out, at exactly the distance the gap itself moves along. So a card
+// clings to the row, strains, comes loose and drops into the next place, rather
+// than sliding continuously through positions it was never really in.
+const STICK_PULL = 0.68;
+// A throw is not a rearrangement. Detents are for putting a card down in a
+// particular place; a hand already moving has decided, and being caught by every
+// cell it passes over is what makes a fling feel like it is dragging through
+// gravel. So the hold fades out with how fast the pointer is travelling, and a
+// card on its way out of the hand simply leaves. Both speeds are of the pointer,
+// not of the card: the card is the thing being held back, so asking it how fast
+// it is going would be asking the stick to judge itself.
+const STICK_FULL_BELOW = 260;   // px/s, an unhurried drag between places
+const STICK_GONE_ABOVE = 1100;  // px/s, unmistakably a throw
+const DETACH = 0.6;       // in cells, and necessarily more than half of one:
+                          // below that the card could break loose into a place
+                          // it is already close enough to break straight out of.
 const LAND_MS = 220;      // ...and how long it takes to get there on release
 
 // Asked once per grab rather than once per frame, and read again next time so
@@ -81,6 +111,10 @@ interface Grab {
   lifted: boolean;
   pointerX: number;
   pointerY: number;
+  /** Last frame's pointer, and the smoothed speed between them. */
+  lastPointerX: number;
+  lastPointerY: number;
+  pointerSpeed: number;
   posX: number;
   posY: number;
   velX: number;
@@ -90,6 +124,10 @@ interface Grab {
   scaleVel: number;
   /** Reduced motion: the card is placed rather than thrown, with no flight home. */
   calm: boolean;
+  /** The cell of the hand it is currently in, which it keeps until dragged clear. */
+  handIndex: number | null;
+  /** Damping of the flight home, fixed at release from how fast it was moving. */
+  landC: number;
   /** Set on release; from then on the springs aim at `landX/landY` and fade. */
   releasedAt: number;
   landX: number;
@@ -105,7 +143,7 @@ export interface DropResult {
   index: number | null;
 }
 
-interface Landing { x: number; y: number; reach: number; }
+interface Landing { x: number; y: number; reach: number; sticky: boolean; }
 
 function zoneUnder(x: number, y: number): { zone: Zone; el: Element } | null {
   const zones = document.querySelectorAll<HTMLElement>('[data-zone]');
@@ -118,32 +156,62 @@ function zoneUnder(x: number, y: number): { zone: Zone; el: Element } | null {
   return null;
 }
 
+const centreOf = (b: DOMRect) => ({ x: b.left + b.width / 2, y: b.top + b.height / 2 });
+const reachOf = (b: DOMRect, x: number, y: number) => {
+  const c = centreOf(b);
+  return Math.hypot(x - c.x, y - c.y);
+};
+/** Centre to centre along the row, which is what "a cell away" means. */
+const pitchOf = (boxes: DOMRect[]) =>
+  boxes.length > 1 ? Math.abs(centreOf(boxes[1]!).x - centreOf(boxes[0]!).x) : boxes[0]!.width;
+
 /**
- * Which gap in the hand the pointer is asking for. Measured in layout space
- * (see `layoutBox`): the cells this compares against are fixed, so the answer
- * depends on the pointer and nothing else. Reading the drawn positions instead
- * would mean the row's own sliding decided where the next slide goes.
+ * Which place in the hand the pointer is asking for.
+ *
+ * Measured in layout space (see `layoutBox`): the cells are fixed, so the answer
+ * depends on the pointer and on which cell the card is already in, and on
+ * nothing else. Reading the drawn positions instead would mean the row's own
+ * sliding decided where the next slide goes.
  */
-function indexInHand(x: number, y: number): number | null {
-  const slots = document.querySelectorAll<HTMLElement>('[data-hand-slot]');
+function indexInHand(x: number, y: number, previous: number | null): number | null {
+  const slots = [...document.querySelectorAll<HTMLElement>('[data-hand-slot]')];
   if (!slots.length) return null;
+  const boxes = slots.map(layoutBox);
+
+  // Rearranging within the hand: the previewed row already holds a cell for this
+  // card, so the question is not where to insert it but which cell it wants, and
+  // it keeps the one it has until dragged clear of it. Distance is measured in
+  // both axes, because a narrow window wraps the row into two.
+  if (document.querySelector('[data-drag-placeholder]')) {
+    const held = previous !== null && previous < boxes.length ? boxes[previous]! : null;
+    if (held && reachOf(held, x, y) < pitchOf(boxes) * DETACH) return previous;
+    let cell = 0;
+    let nearest = Infinity;
+    boxes.forEach((b, i) => {
+      const d = reachOf(b, x, y);
+      if (d < nearest) { nearest = d; cell = i; }
+    });
+    return cell;
+  }
+
+  // Coming in from the draw pile or the discard: nothing is holding a place yet,
+  // so this is an insertion point between cards, and it can be one past the end.
   let bestIndex = -1;
   let bestDistance = Infinity;
   let bestBox: DOMRect | null = null;
-  slots.forEach((el, i) => {
-    const r = layoutBox(el);
+  boxes.forEach((b, i) => {
     // Horizontal distance to the slot's centre: the hand is a row, so x decides.
-    const d = Math.abs(x - (r.left + r.width / 2)) + (y < r.top - 80 ? 400 : 0);
+    const d = Math.abs(x - centreOf(b).x) + (y < b.top - 80 ? 400 : 0);
     if (d < bestDistance) {
       bestDistance = d;
       bestIndex = i;
-      bestBox = r;
+      bestBox = b;
     }
   });
   if (bestIndex === -1 || !bestBox) return null;
-  const r: DOMRect = bestBox;
+  const box: DOMRect = bestBox;
   // Past the middle of the nearest slot means "after it".
-  return x > r.left + r.width / 2 ? bestIndex + 1 : bestIndex;
+  return x > centreOf(box).x ? bestIndex + 1 : bestIndex;
 }
 
 /**
@@ -152,33 +220,26 @@ function indexInHand(x: number, y: number): number | null {
  * would take it. This is the one thing both the magnet and the flight home need
  * to know, so they ask the same question and always agree on the answer.
  */
-function landingSpot(
-  from: Zone, over: Zone | null, overIndex: number | null, cardWidth: number,
-): Landing | null {
+function landingSpot(from: Zone, over: Zone | null, cardWidth: number): Landing | null {
   if (over === 'hand') {
-    // While rearranging, the hand already shows the gap: the faded card sitting
-    // in the previewed order IS the landing place, so no arithmetic is needed
-    // and the magnet cannot disagree with what the row is showing.
-    const reach = cardWidth * REACH_IN_HAND;
-    const preview = document.querySelector<HTMLElement>('[data-drag-placeholder]');
-    if (preview) {
-      const r = layoutBox(preview);
-      return { x: r.left, y: r.top, reach };
-    }
     const slots = [...document.querySelectorAll<HTMLElement>('[data-hand-slot]')];
     if (!slots.length) return null;
-    const at = Math.min(Math.max(overIndex ?? slots.length, 0), slots.length);
-    if (at < slots.length) {
-      const r = layoutBox(slots[at]!);
-      return { x: r.left, y: r.top, reach };
+
+    // The gap. Not calculated: it is literally the place the row is holding
+    // open, whether that is the faded card being rearranged or the outline the
+    // hand opens for one arriving from elsewhere. So the stick can never
+    // disagree with what is on screen. Its reach is the distance at which the
+    // gap moves along, so the hold gives out exactly as the place it holds to
+    // changes hands.
+    const preview = document.querySelector<HTMLElement>('[data-drag-placeholder]');
+    if (!preview) {
+      // No gap open means the hand is not offering this card a place: the draw
+      // would be refused, and pulling towards a place it cannot take would
+      // promise something that is not going to happen.
+      return null;
     }
-    // Coming from outside the hand and landing at the end: one place further
-    // along the row, measured rather than assumed.
-    const last = layoutBox(slots[slots.length - 1]!);
-    const gap = slots.length > 1
-      ? layoutBox(slots[1]!).left - layoutBox(slots[0]!).right
-      : 6;
-    return { x: last.right + gap, y: last.top, reach };
+    const r = layoutBox(preview);
+    return { x: r.left, y: r.top, reach: pitchOf(slots.map(layoutBox)) * DETACH, sticky: true };
   }
   // Only a card from the hand can be discarded, which is the same condition the
   // zone highlight uses; pulling towards a move that will be refused would lie.
@@ -186,7 +247,7 @@ function landingSpot(
     const empty = document.querySelector<HTMLElement>('[data-zone="discard"] .card-empty');
     if (!empty) return null;
     const r = empty.getBoundingClientRect();
-    return { x: r.left, y: r.top, reach: cardWidth * REACH_TO_DISCARD };
+    return { x: r.left, y: r.top, reach: cardWidth * REACH_TO_DISCARD, sticky: false };
   }
   return null;
 }
@@ -194,10 +255,22 @@ function landingSpot(
 const tiltOf = (lag: number) =>
   Math.max(-TILT_MAX, Math.min(TILT_MAX, lag * TILT_PER_PX));
 
-/** Smoothstep, so the magnet has no edge to it: it fades in at arm's length. */
-function pullAt(distance: number, reach: number): number {
-  const t = 1 - Math.min(1, distance / reach);
-  return MAGNET * t * t * (3 - 2 * t);
+/** How much of the hold is left at this pointer speed: all of it, or none. */
+function escapedBy(speed: number): number {
+  const t = Math.min(1, Math.max(0, (speed - STICK_FULL_BELOW) / (STICK_GONE_ABOVE - STICK_FULL_BELOW)));
+  return 1 - t * t * (3 - 2 * t);
+}
+
+function pullAt(distance: number, reach: number, sticky: boolean): number {
+  const t = Math.min(1, distance / reach);
+  // Holding on: nearly constant for most of the way out, then it lets go over
+  // the last stretch, which is what makes breaking a card out of its place
+  // something you feel rather than something that merely happens.
+  if (sticky) return STICK_PULL * (1 - t ** 4);
+  // Being drawn in: smoothstep, so the magnet has no edge to it and instead
+  // fades in as the card approaches from arm's length.
+  const u = 1 - t;
+  return MAGNET * u * u * (3 - 2 * u);
 }
 
 function spring(pos: number, vel: number, target: number, dt: number, k: number, c: number) {
@@ -247,6 +320,13 @@ export function useDragEngine(onDrop: (result: DropResult) => void) {
     const dt = Math.min(MAX_FRAME, (now - g.lastFrame) / 1000);
     g.lastFrame = now;
 
+    // Measured here rather than in the move handler, so it is over a known and
+    // even interval instead of over whatever gaps the pointer events arrive in.
+    const travelled = Math.hypot(g.pointerX - g.lastPointerX, g.pointerY - g.lastPointerY);
+    g.lastPointerX = g.pointerX;
+    g.lastPointerY = g.pointerY;
+    g.pointerSpeed += (travelled / Math.max(dt, 1 / 1000) - g.pointerSpeed) * Math.min(1, dt * 18);
+
     // Held still for long enough? Break loose without any movement, the way a
     // long press picks up an icon.
     if (!g.lifted && !g.releasedAt && now - g.startedAt >= LIFT_MS) g.lifted = true;
@@ -255,12 +335,15 @@ export function useDragEngine(onDrop: (result: DropResult) => void) {
     // both have to agree about which zone the pointer is over.
     const hit = g.lifted && !g.releasedAt ? zoneUnder(g.pointerX, g.pointerY) : null;
     const over = hit?.zone ?? null;
-    const overIndex = over === 'hand' ? indexInHand(g.pointerX, g.pointerY) : null;
+    const overIndex = over === 'hand' ? indexInHand(g.pointerX, g.pointerY, g.handIndex) : null;
+    // Kept on the grab, so the cell it is in survives from frame to frame and
+    // dropping uses the very place that was last drawn rather than asking again.
+    g.handIndex = overIndex;
 
     if (g.lifted) {
       const landing = g.releasedAt
-        ? { x: g.landX, y: g.landY, reach: 0 }
-        : landingSpot(g.from, over, overIndex, g.width);
+        ? { x: g.landX, y: g.landY, reach: 0, sticky: false }
+        : landingSpot(g.from, over, g.width);
 
       // Under the pointer by its middle: the card gathers itself into the hand
       // that picked it up rather than hanging off the corner that was grabbed.
@@ -269,7 +352,8 @@ export function useDragEngine(onDrop: (result: DropResult) => void) {
       if (landing) {
         const pull = g.releasedAt
           ? 1
-          : pullAt(Math.hypot(landing.x - targetX, landing.y - targetY), landing.reach);
+          : pullAt(Math.hypot(landing.x - targetX, landing.y - targetY), landing.reach, landing.sticky) *
+            (landing.sticky ? escapedBy(g.pointerSpeed) : 1);
         targetX += (landing.x - targetX) * pull;
         targetY += (landing.y - targetY) * pull;
       }
@@ -278,14 +362,14 @@ export function useDragEngine(onDrop: (result: DropResult) => void) {
         g.posX = targetX; g.posY = targetY; g.velX = 0; g.velY = 0; g.lagX = 0; g.scale = 1;
       } else {
         const k = g.releasedAt ? LAND_K : FOLLOW_K;
-        const c = g.releasedAt ? LAND_C : FOLLOW_C;
+        const c = g.releasedAt ? g.landC : FOLLOW_C;
         [g.posX, g.velX] = spring(g.posX, g.velX, targetX, dt, k, c);
         [g.posY, g.velY] = spring(g.posY, g.velY, targetY, dt, k, c);
         // The tilt is the lag itself, smoothed: a card trailing 100px behind a
         // fast hand tips as far as it goes, and a card at rest is straight.
         g.lagX += ((targetX - g.posX) - g.lagX) * Math.min(1, dt * 14);
         [g.scale, g.scaleVel] =
-          spring(g.scale, g.scaleVel, g.releasedAt ? 1 : LIFT_SCALE, dt, LAND_K, LAND_C);
+          spring(g.scale, g.scaleVel, g.releasedAt ? 1 : LIFT_SCALE, dt, LIFT_K, LIFT_C);
       }
     }
 
@@ -325,9 +409,11 @@ export function useDragEngine(onDrop: (result: DropResult) => void) {
         width: r.width, height: r.height,
         startedAt: performance.now(), lifted: false,
         pointerX: e.clientX, pointerY: e.clientY,
+        lastPointerX: e.clientX, lastPointerY: e.clientY, pointerSpeed: 0,
         posX: r.left, posY: r.top,
         velX: 0, velY: 0, lagX: 0,
         scale: 1, scaleVel: 0, calm: reducedMotion(),
+        handIndex: null, landC: 2 * Math.sqrt(LAND_K),
         releasedAt: 0, landX: 0, landY: 0,
         lastFrame: performance.now(),
       };
@@ -359,11 +445,19 @@ export function useDragEngine(onDrop: (result: DropResult) => void) {
       }
       const hit = zoneUnder(g.pointerX, g.pointerY);
       const to = hit?.zone ?? null;
-      const index = to === 'hand' ? indexInHand(g.pointerX, g.pointerY) : null;
+      // The cell the last frame drew, not a fresh answer: what you saw when you
+      // let go is where it goes.
+      const index = to === 'hand'
+        ? g.handIndex ?? indexInHand(g.pointerX, g.pointerY, null)
+        : null;
+      // How hard it was thrown decides how loose the landing is.
+      const thrown = Math.min(1, Math.hypot(g.velX, g.velY) / THROW_SPEED);
+      g.landC = 2 * Math.sqrt(LAND_K) *
+        (LAND_ZETA_STILL + (LAND_ZETA_THROWN - LAND_ZETA_STILL) * thrown);
       // Where to fly, decided before the move is reported: afterwards the row
       // has already been rearranged and the question no longer has this answer.
       // A refused drop goes back to the card it came from, which is still there.
-      const home = landingSpot(g.from, to, index, g.width) ??
+      const home = landingSpot(g.from, to, g.width) ??
         (g.el.isConnected
           ? (() => { const r = g.el.getBoundingClientRect(); return { x: r.left, y: r.top }; })()
           : { x: g.posX, y: g.posY });

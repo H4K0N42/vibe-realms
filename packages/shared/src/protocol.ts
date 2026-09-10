@@ -7,7 +7,13 @@ export type ClientMessage =
   | { t: 'leave' }
   | { t: 'updateSettings'; settings: Partial<RoomSettings> }
   | { t: 'start' }
-  | { t: 'draw'; from: 'deck' | 'discard'; cardId?: CardId }
+  /**
+   * `index` is where in the hand the card was dropped. Omitted means the end,
+   * which is what a click or the keyboard does. The hand's order is not
+   * cosmetic (the reveal turns cards in exactly that order), so a card dragged
+   * to a particular place belongs in that place.
+   */
+  | { t: 'draw'; from: 'deck' | 'discard'; cardId?: CardId; index?: number }
   | { t: 'discard'; cardId: CardId }
   /**
    * New hand order after drag-and-drop. The server keeps it because the

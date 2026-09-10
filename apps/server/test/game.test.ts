@@ -93,6 +93,27 @@ describe('turn loop', () => {
     assert.ok(!s.discard.includes(target));
   });
 
+  it('puts a drawn card where it was dropped, not always at the end', () => {
+    const s = started(['a', 'b']);
+    const before = [...s.players[0]!.hand];
+    const drawn = draw(s, 'p0', 'deck', undefined, 1001, 3);
+    assert.equal(s.players[0]!.hand[3], drawn);
+    assert.deepEqual(s.players[0]!.hand.filter((c) => c !== drawn), before);
+  });
+
+  it('appends when no place is given, and when the one given is nonsense', () => {
+    const ends = (index?: number) => {
+      const s = started(['a', 'b']);
+      const drawn = draw(s, 'p0', 'deck', undefined, 1001, index);
+      return s.players[0]!.hand.indexOf(drawn);
+    };
+    assert.equal(ends(undefined), 7);
+    assert.equal(ends(99), 7);      // past the end of the hand
+    assert.equal(ends(-1), 7);
+    assert.equal(ends(2.5), 7);     // not a place at all
+    assert.equal(ends(0), 0);       // ...but the very front is a real answer
+  });
+
   it('rejects taking a card that is not in the discard area', () => {
     const s = started(['a', 'b']);
     draw(s, 'p0', 'deck', undefined, 1001);
