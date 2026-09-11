@@ -144,6 +144,43 @@ field does the same thing.
 **No accounts.** Create room → short code → nickname → play. Reconnect cookie so a
 refresh rejoins. Identity layer built so stats/history could attach later.
 
+### The untrusted client (2026-09-11)
+
+Nothing authenticates a join, so the **room code is the access control**, and
+`addPlayer()` refusing anyone once the phase leaves the lobby is what bounds the
+exposure: a stranger with the right code can walk into a lobby, never into a
+game in progress. The seat itself is not guessable, the resume token is
+`randomUUID()` and the seat identity is read from `conn.playerId` on the server,
+never from the message.
+
+The state machine was already written as if the client were hostile, and it
+holds up: `draw({from:'deck'})` ignores any card id the client names,
+`reorderHand()` insists on a permutation of the hand actually held, `discard()`
+checks ownership, `requireTurn()` gates on phase and turn, and hands never enter
+the broadcast payload. What was missing was not rule-checking but **bounds**:
+
+- `JSON.parse(raw) as ClientMessage` was an assertion, not a check. `validate.ts`
+  now bounds the shapes and sizes at the socket, before the manager sees them.
+  Whether a move is *legal* is still game.ts's job; this layer only says how big
+  a thing may be. A nickname is stored, rewritten to SQLite on every save and
+  broadcast to every player on every state change, so an unbounded one is an
+  amplifier rather than a mistake.
+- `ws` defaults `maxPayload` to 100 MiB. Set to 64 KiB; a real message is a few
+  hundred bytes.
+- The room code search was `do {...} while (taken)` with no way out. 31^4 is
+  923,521, room creation is unauthenticated, and an abandoned room lingers about
+  an hour, so filling the space hung the event loop for everybody, and rooms
+  reload from SQLite at boot so a restart came back hung. Bounded, plus a room
+  ceiling, plus a per-caller rate limit.
+- Room codes and the shuffle both came from `Math.random`, V8's xorshift128+,
+  whose state is recoverable from a handful of outputs. One stream for both
+  meant observed codes leaked the deck order of later games. Both now come from
+  the CSPRNG.
+
+What is deliberately *not* there: any notion of a host. Every player in a room
+can change settings, start, and call a rematch. That is grief, not a breach, and
+for a table of friends it is one less thing to explain.
+
 ### Card art
 
 Styled card components rendered from the i18n data, playable immediately, since

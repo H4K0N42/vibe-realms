@@ -631,3 +631,32 @@ describe('rematch drops players who have gone', () => {
     assert.equal(a.last('state')!.state.turn, a.playerId);
   });
 });
+
+describe('room code exhaustion', () => {
+  // Regression: the code search used to be `do {...} while (taken)` with no way
+  // out. A full code space meant an unbounded loop on the event loop thread,
+  // which is a hang of the whole server rather than an error to one caller, and
+  // rooms are reloaded from SQLite at boot so a restart did not clear it.
+  // A fixed `rand` collapses the space to exactly one code, which is the same
+  // situation arrived at cheaply. The timeout is the actual assertion: without
+  // the bound this test never returns.
+  it('gives up instead of spinning when no code is free', { timeout: 5000 }, () => {
+    const m = new RoomManager(store, {
+      now: () => now,
+      rand: () => 0.5,
+      makeEngine: () => fakeEngine(),
+    });
+    const first = m.createRoom();
+    assert.equal(typeof first, 'string');
+    assert.throws(() => m.createRoom(), /no free room code/);
+    m.disposeAll();
+  });
+
+  it('keeps handing out codes while the space is not exhausted', () => {
+    const m = new RoomManager(store, { now: () => now, makeEngine: () => fakeEngine() });
+    const codes = new Set(Array.from({ length: 50 }, () => m.createRoom()));
+    assert.equal(codes.size, 50, 'default rand is the CSPRNG, so no collisions at this scale');
+    for (const code of codes) assert.match(code, /^[A-Z2-9]{4}$/);
+    m.disposeAll();
+  });
+});

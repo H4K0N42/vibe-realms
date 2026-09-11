@@ -1,7 +1,7 @@
 // Room manager: owns live rooms, routes protocol messages, and decides what each
 // connection is allowed to see. Transport-agnostic: it talks to a `Connection`
 // interface, so the tests drive it without opening a socket.
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 
 import {
   MAX_PLAYERS,
@@ -35,6 +35,37 @@ interface LiveRoom {
 
 // No 0/O/1/I/L: these get read aloud across a table.
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const CODE_LENGTH = 4;
+
+/**
+ * Give up looking for a free code rather than spinning. The loop below used to
+ * be unbounded, which is fine while codes are plentiful and a hang once they
+ * are not: 31^4 is 923,521, room creation is unauthenticated, and an abandoned
+ * room sits in memory for about an hour before the sweeper takes it. Filling
+ * the space froze the event loop for everybody, and because rooms are reloaded
+ * from SQLite at boot, a restart came straight back up frozen.
+ */
+const MAX_CODE_ATTEMPTS = 200;
+
+/**
+ * Hard ceiling on live rooms. Well above any real table count and far below
+ * the code space, so MAX_CODE_ATTEMPTS is never the thing that trips first.
+ */
+const MAX_ROOMS = 10_000;
+
+/**
+ * Uniform [0,1) from the CSPRNG, the default for both the room code and the
+ * shuffle.
+ *
+ * Math.random is V8's xorshift128+, whose internal state is recoverable from a
+ * handful of outputs. Both the code and the deck order came from that one
+ * stream, so codes observed from the lobby were enough to predict the shuffle
+ * of every game that followed. That was academic while the deployment sat
+ * behind SSO; it is not academic for a server anyone can reach.
+ */
+function cryptoRandom(): number {
+  return randomInt(2 ** 47) / 2 ** 47;
+}
 
 const DEFAULT_EXPANSIONS: ExpansionConfig = {
   cursedHoardSuits: false,
@@ -63,7 +94,7 @@ export class RoomManager {
   constructor(store: Store, opts: ManagerOptions = {}) {
     this.#store = store;
     this.#now = opts.now ?? Date.now;
-    this.#rand = opts.rand ?? Math.random;
+    this.#rand = opts.rand ?? cryptoRandom;
     this.#makeEngine = opts.makeEngine ?? createEngine;
 
     // Games in progress survive a restart. Everyone starts disconnected; they
@@ -82,9 +113,16 @@ export class RoomManager {
   }
 
   createRoom(settings: Partial<RoomSettings> = {}): string {
+    if (this.#rooms.size >= MAX_ROOMS) {
+      throw new GameError('ROOM_FULL', 'the server is at its room limit');
+    }
     let code = '';
+    let attempts = 0;
     do {
-      code = Array.from({ length: 4 }, () =>
+      if (++attempts > MAX_CODE_ATTEMPTS) {
+        throw new GameError('ROOM_FULL', 'no free room code available');
+      }
+      code = Array.from({ length: CODE_LENGTH }, () =>
         CODE_ALPHABET[Math.floor(this.#rand() * CODE_ALPHABET.length)],
       ).join('');
     } while (this.#rooms.has(code));

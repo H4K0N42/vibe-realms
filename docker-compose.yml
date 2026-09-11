@@ -23,3 +23,11 @@ services:
     # user and the usual first user on a single user host; override in .env if
     # this host disagrees.
     user: "${FR_UID:-1000}:${FR_GID:-1000}"
+    # A ceiling, so a memory bug or a flood costs the container and not the
+    # host. The server holds room state in memory and little else; 512M is
+    # roomy for a handful of tables.
+    mem_limit: ${FR_MEM_LIMIT:-512m}
+    # Nothing in here needs to gain privileges, and the process drops to a
+    # non-root uid at start.
+    security_opt:
+      - no-new-privileges:true
