@@ -23,6 +23,17 @@ export interface RoomEngineHandle {
   dispose(): void;
 }
 
+/**
+ * Cards the product never deals, whatever the engine offers. The promo printing
+ * of the Phoenix was already dropped here in spirit (`listCards()` filters it);
+ * the base Phoenix goes for the same kind of reason plus one of its own: it is
+ * the card upstream has no German text for, so a German table met it as English
+ * with an "EN" badge, and it is the one card whose blanking the two printings
+ * disagree about (see DESIGN.md "Known divergences"). `@fr/engine` still knows
+ * it and the upstream vectors still score it; it simply never reaches a table.
+ */
+const NOT_DEALT: readonly CardId[] = ['FR55', 'FR55P'];
+
 export function createEngine(expansions: ExpansionConfig, playerCount: number): RoomEngineHandle {
   const engine = new RoomEngine({
     cursedHoardSuits: expansions.cursedHoardSuits,
@@ -30,7 +41,7 @@ export function createEngine(expansions: ExpansionConfig, playerCount: number): 
     playerCount,
   });
 
-  const all = engine.listCards();
+  const all = engine.listCards().filter((c) => !NOT_DEALT.includes(c.id));
   const main = all.filter((c) => !c.cursedItem).map((c) => c.id);
   const cursed = all.filter((c) => c.cursedItem).map((c) => c.id);
 

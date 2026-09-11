@@ -89,7 +89,7 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .card-selected { outline: 2px solid var(--accent); }
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: .25rem; }
 .card-name { font-weight: 650; font-size: .85rem; }
-.card-strength { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+.card-strength { font-variant-numeric: tabular-nums; font-weight: 700; color: #d4af37; }
 .card-suit { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
 .card-body { font-size: .72rem; color: #cfd3dc; }
 .card-body p { margin: 0 0 .3rem; }
@@ -215,7 +215,7 @@ button.primary { background: var(--accent); color: var(--accent-ink); border-col
 .score-block summary { cursor: pointer; font-weight: 650; }
 .summary-hint { color: var(--muted); font-weight: 400; font-size: .85rem; }
 .score-block h2 { color: var(--ink); display: flex; gap: .5rem; align-items: baseline; }
-.total { margin-left: auto; font-size: 1.3rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+.total { margin-left: auto; font-size: 1.3rem; color: #d4af37; font-variant-numeric: tabular-nums; }
 .score-block table { width: 100%; border-collapse: collapse; font-size: .8rem;
                      margin-top: .6rem; }
 .score-block th { text-align: left; font-weight: 600; font-size: .7rem; color: var(--muted);
@@ -246,8 +246,8 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .reveal-progress { opacity: .6; }
 .reveal-total {
   margin: .1rem 0 0; font-size: 3.4rem; line-height: 1; font-weight: 700;
-  color: var(--accent); font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 26px color-mix(in srgb, var(--accent) 28%, transparent);
+  color: #d4af37; font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 26px color-mix(in srgb, #d4af37 28%, transparent);
 }
 .reveal-total.negative { color: var(--danger); }
 
@@ -302,7 +302,16 @@ tr.blanked { opacity: .45; text-decoration: line-through; }
 .zone-count { margin: 0 0 .4rem; font-size: .75rem; text-transform: uppercase;
               letter-spacing: .08em; color: var(--muted); text-align: center; }
 
-.deck-card.drawable { cursor: grab; border-color: var(--accent); }
+/* Drawable is the same card back, awake: the pile comes up out of the faded
+   dashed placeholder to full opacity on a solid border, and the accent ring
+   says whose turn it is. It is deliberately not a different card. Painting it
+   white made the one thing on the table that is face down the brightest thing
+   on it, which read as a card being played rather than as a pile waiting. */
+.deck-card.drawable {
+  cursor: grab; opacity: 1; border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: repeating-linear-gradient(45deg, #2a2f3d, #2a2f3d 6px, #232834 6px, #232834 12px);
+}
 .deck-card.drawable::after {
   content: ''; position: absolute; inset: -3px; border-radius: 12px;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent),

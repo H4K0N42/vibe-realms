@@ -30,12 +30,18 @@ COPY --from=build /app/apps/server ./apps/server
 COPY --from=build /app/apps/web/dist ./apps/web/dist
 RUN npm ci --omit=dev --no-audit --fund=false && npm cache clean --force
 
-# SQLite lives on a volume so games survive container replacement.
-# The user is created and /data made writable BEFORE anything declares it a
-# volume: Docker discards writes to a VOLUME path in later instructions, so a
-# chown after `VOLUME` silently does nothing and a fresh volume comes up
-# root-owned, which the non-root user cannot write to.
-RUN addgroup -S fr && adduser -S fr -G fr && mkdir -p /data && chown -R fr:fr /data
+# SQLite lives on a bind mount (./DATA on the host, see docker-compose.yml) so
+# games survive a container replacement and are backed up with a plain tar.
+# A bind mount keeps the HOST directory's ownership, unlike a named volume: the
+# container has to run as whatever uid owns that directory on the host, not as
+# a uid this image invents. The `node:*-alpine` base already ships a non-root
+# `node` user at uid 1000, which is also the first regular user on most single-
+# user Linux hosts, so reusing it (rather than creating our own `fr` user) is
+# what makes the bind mount writable without also having to chown the host
+# directory or run the container as root. If your host's uid is not 1000,
+# either `chown -R 1000 ./DATA` once, or add `user: "$(id -u):$(id -g)"` to the
+# compose service.
+RUN mkdir -p /data && chown -R node:node /data
 
 ENV FR_DATA_DIR=/data
 ENV FR_STATIC_DIR=/app/apps/web/dist
@@ -46,6 +52,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-USER fr
+USER node
 
 CMD ["node", "apps/server/dist/src/index.js"]

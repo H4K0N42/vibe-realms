@@ -1,8 +1,18 @@
 node_modules/
 dist/
 *.tsbuildinfo
+# Two different cwd-relative locations: root `npm start` runs with cwd here,
+# `npm run dev` runs with cwd inside apps/server (npm workspaces cd into the
+# package before running its script).
 /data/
+apps/server/data/
+# The Docker container's bind-mounted database (see docker-compose.yml).
+/DATA/
+# WAL mode (apps/server/src/db.ts) always writes these two alongside the
+# database file itself.
 *.sqlite
 *.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 .env
 .DS_Store

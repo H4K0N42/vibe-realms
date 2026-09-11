@@ -9,12 +9,12 @@
  */
 export const UI = {
   de: {
-    'app.title': 'Fantasy Realms',
-    'app.tagline': 'Sammle sieben Karten, die sich gegenseitig verstärken – und keine, die sich blockiert.',
+    'app.title': 'Vibe Realms',
+    'app.tagline': 'Sammle sieben Karten, die sich gegenseitig verstärken, und keine, die sich blockiert.',
     'app.how.1': 'Jeder Zug: eine Karte ziehen, eine ablegen.',
     'app.how.2': 'Liegen zehn Karten in der Ablage, endet das Spiel.',
     'app.how.3': 'Die höchste Punktzahl gewinnt.',
-    'app.players': '2–6 Spieler · ein Gerät pro Spieler',
+    'app.players': '2-6 Spieler · ein Gerät pro Spieler',
 
     'home.name': 'Name',
     'home.namePlaceholder': 'Dein Name',
@@ -22,7 +22,7 @@ export const UI = {
     'home.codePlaceholder': 'CODE',
     'home.join': 'Beitreten',
     'home.new': 'Neues Spiel',
-    'home.hint': 'Code eingeben, um einem Spiel beizutreten – oder leer lassen für ein neues.',
+    'home.hint': 'Code eingeben, um einem Spiel beizutreten, oder leer lassen für ein neues.',
 
     'bar.room': 'Raum',
     'bar.copy': 'Einladungslink kopieren',
@@ -41,19 +41,19 @@ export const UI = {
     'lobby.needPlayers': 'Mindestens {n} Spieler.',
     'lobby.invite': 'Schick den Link oder den Code an deine Mitspieler.',
 
-    'table.yourTurnDraw': 'Zieh dir eine Karte herüber',
+    'table.yourTurnDraw': 'Zieh eine Karte',
     'table.yourTurnDiscard': 'Karte in die Ablage ziehen',
     'table.waitingFor': '{name} ist am Zug',
     'table.waiting': 'Warte…',
     'table.deck': 'Nachziehstapel: {n} Karten',
     'table.discardCount': 'Ablage {n}/{max}',
     'table.offline': 'offline',
-    'table.disconnected': 'Verbindung verloren – dein Sitzplatz bleibt reserviert.',
+    'table.disconnected': 'Verbindung verloren: dein Sitzplatz bleibt reserviert.',
     'table.keyboardHint': 'Enter zieht bzw. legt ab · Alt+←/→ sortiert die Hand · Leertaste zeigt den vollen Text',
 
     'card.blanked': 'blockiert',
     'card.aria': '{name}, Stärke {strength}, {suit}',
-    'card.ariaBlanked': '{name}, Stärke {strength}, {suit} – blockiert',
+    'card.ariaBlanked': '{name}, Stärke {strength}, {suit}, blockiert',
     'card.deckAria': 'Nachziehstapel, {n} Karten',
     'card.close': 'Schließen',
 
@@ -72,8 +72,8 @@ export const UI = {
     'reveal.freed': 'frei!',
 
     'action.title': 'Karten mit Wahl',
-    'action.pickCard': '– Karte wählen –',
-    'action.pickSuit': '– Gattung –',
+    'action.pickCard': 'Karte wählen',
+    'action.pickSuit': 'Gattung',
     'action.confirm': 'Bestätigen',
     'action.decline': 'Nicht nutzen',
 
@@ -93,12 +93,12 @@ export const UI = {
     'scores.home': 'Zur Startseite',
   },
   en: {
-    'app.title': 'Fantasy Realms',
-    'app.tagline': 'Collect seven cards that strengthen one another – and none that blanks them.',
+    'app.title': 'Vibe Realms',
+    'app.tagline': 'Collect seven cards that strengthen one another, and none that blanks them.',
     'app.how.1': 'Each turn: draw one card, discard one.',
     'app.how.2': 'Once ten cards lie in the discard area, the game ends.',
     'app.how.3': 'Highest score wins.',
-    'app.players': '2–6 players · one device each',
+    'app.players': '2-6 players · one device each',
 
     'home.name': 'Name',
     'home.namePlaceholder': 'Your name',
@@ -106,7 +106,7 @@ export const UI = {
     'home.codePlaceholder': 'CODE',
     'home.join': 'Join',
     'home.new': 'New game',
-    'home.hint': 'Enter a code to join a game – or leave it blank to start one.',
+    'home.hint': 'Enter a code to join a game, or leave it blank to start one.',
 
     'bar.room': 'Room',
     'bar.copy': 'Copy invite link',
@@ -132,12 +132,12 @@ export const UI = {
     'table.deck': 'Draw pile: {n} cards',
     'table.discardCount': 'Discard {n}/{max}',
     'table.offline': 'offline',
-    'table.disconnected': 'Connection lost – your seat is held.',
+    'table.disconnected': 'Connection lost: your seat is held.',
     'table.keyboardHint': 'Enter draws or discards · Alt+←/→ sorts your hand · Space shows the full text',
 
     'card.blanked': 'blanked',
     'card.aria': '{name}, strength {strength}, {suit}',
-    'card.ariaBlanked': '{name}, strength {strength}, {suit} – blanked',
+    'card.ariaBlanked': '{name}, strength {strength}, {suit}, blanked',
     'card.deckAria': 'Draw pile, {n} cards',
     'card.close': 'Close',
 
@@ -156,8 +156,8 @@ export const UI = {
     'reveal.freed': 'freed!',
 
     'action.title': 'Cards with a choice',
-    'action.pickCard': '– pick a card –',
-    'action.pickSuit': '– suit –',
+    'action.pickCard': 'pick a card',
+    'action.pickSuit': 'suit',
     'action.confirm': 'Confirm',
     'action.decline': "Don't use",
 

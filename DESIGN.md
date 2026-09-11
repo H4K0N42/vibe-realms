@@ -19,8 +19,8 @@ data, rules logic and translations.
 
 What it contains:
 
-- `js/deck.js` (1579 lines) holds all 103 cards: `FR01`–`FR55` + `FR55P` (Phoenix
-  promo), `CH01`–`CH47` (Cursed Hoard: Building/Outsider/Undead suits, plus
+- `js/deck.js` (1579 lines) holds all 103 cards: `FR01`-`FR55` + `FR55P` (Phoenix
+  promo), `CH01`-`CH47` (Cursed Hoard: Building/Outsider/Undead suits, plus
   separate Cursed Items). Expansions toggle via `enableCursedHoardSuits()` /
   `enableCursedHoardItems()`.
 - `js/hand.js`, `js/discard.js`, `js/combinatorics.js`: the scoring engine.
@@ -125,7 +125,7 @@ all text is already translated. Real scans layer in later as `FR01.jpg` /
 7 cards in hand. On your turn: draw one (from deck or the face-up discard area),
 then discard one. Game ends when the discard area fills; everyone scores their 7.
 
-**2–6 players** (`js/app.js:290` → `playerCounts: [2, 3, 4, 5, 6]`). Player count is
+**2-6 players** (`js/app.js:290` → `playerCounts: [2, 3, 4, 5, 6]`). Player count is
 an engine input (some cards score against it), so it is passed into the room's vm
 context at game start. With no bots, a room cannot start below 2 humans.
 
@@ -133,24 +133,30 @@ context at game start. With no bots, a room cannot start below 2 humans.
   full breakdown is shown at endgame. A per-room toggle for a live preview was
   specced and built as a setting, but never had a renderer, so the lobby offered
   a checkbox that did nothing. Removed rather than left lying (2026-09-08).
-- **No Phoenix promo.** `FR55P` was offered as a third expansion checkbox.
-  Removed at Hagen's call (2026-09-08): the setting, the checkbox and its two
+- **No Phoenix at all.** `FR55P` was offered as a third expansion checkbox.
+  Removed by owner decision (2026-09-08): the setting, the checkbox and its two
   strings are gone, and `ExpansionConfig` is down to the two Cursed Hoard flags.
-  The base Phoenix `FR55` stays in the deck; only the alternative printing goes.
-  `@fr/engine` keeps its `phoenixPromo` option, because that mirrors a switch
-  upstream itself offers and `isolation.test.js` covers it, but nothing in the
-  product turns it on any more, so `listCards()` always drops `FR55P`.
+  The base Phoenix `FR55` followed on 2026-09-11, the same call: it is
+  the one card upstream has no German text for, so a German table met it as
+  English with an "EN" badge, and it is the card the two printings disagree
+  about (see "Known divergences"). Both ids sit in `NOT_DEALT` in
+  `apps/server/src/engine.ts`, which is the product layer: the deck is 54 cards
+  instead of 55, and 69 with all of Cursed Hoard. `@fr/engine` still knows both
+  cards and keeps its `phoenixPromo` option, because that mirrors a switch
+  upstream itself offers and `isolation.test.js` and the upstream vectors cover
+  it. Removing a card from the vendored deck was never on the table.
 - **Expansions:** selected per room in the lobby.
 - **No solo play, no bots.** Cut from scope.
 
-### Assumed, not explicitly confirmed by Hagen
+### Assumed, not explicitly confirmed
 
 These were recommended and not vetoed; revisit if they feel wrong in play.
 
 - No turn timer.
 - Disconnected players hold their seat indefinitely, shown with a "disconnected" badge.
-- Discards require a confirm step (undo before commit), since a misclick is
-  otherwise unrecoverable.
+- ~~Discards require a confirm step (undo before commit), since a misclick is
+  otherwise unrecoverable.~~ Superseded by the drag gesture; see "Hand order and
+  the end-of-game reveal" below.
 
 ### Vote to end early
 
@@ -164,7 +170,7 @@ Second endgame path, alongside the normal discard-area trigger.
 - **On pass:** game ends immediately, normal scoring and breakdown.
 - **The disconnected player is still scored** and can still win. Ending early is a
   convenience for the remaining players, not a punishment: forfeiting would turn a
-  dropped connection into a way to lose. *(Hagen's call to reverse.)*
+  dropped connection into a way to lose. *(Owner's call to reverse.)*
 - **Mid-turn edge case:** if they dropped holding 8 cards, score their **best 7-card
   subset** (8 combinations, trivial) rather than discarding arbitrarily for them.
 
@@ -179,10 +185,13 @@ Additive later, none blocking:
 
 ## Status (2026-09-02)
 
-Built and verified end to end. `npm test --workspaces` -> 120 tests, 119 pass,
-0 fail, 1 todo (the Phoenix divergence below). `npm run e2e` runs a real browser-
-less client against a real server; it also passes against the Docker image, and a
-game in progress survives `docker restart`.
+Built and verified end to end. `npm test` -> 128 tests, 127 pass, 0 fail, 1 todo
+(the Phoenix divergence below), re-checked 2026-09-11. Run the root script, not
+`npm test --workspaces`: `apps/web` has no test script, so the bare form exits 1
+on that alone. `npm run e2e` runs a real browser-less client against a real
+server, which has to be up already (`127.0.0.1:3999`, overridable with
+`FR_E2E_BASE`); it also passes against the Docker image, and a game in progress
+survives `docker restart`.
 
 Layout:
 
@@ -191,8 +200,9 @@ Layout:
     packages/carddata   generated card data + 14 locales of text
     apps/server         game state machine, rooms, ws, SQLite
     apps/web            Vite + React client
-    scripts/            sync-engine, extract-cards, sync-i18n,
-                        gen-upstream-tests, e2e-smoke
+    scripts/            sync-engine, extract-cards, sync-i18n, sync-colours,
+                        compute-harm, gen-upstream-tests, e2e-smoke,
+                        e2e-fullgame, companion-player
 
 `npm run sync` re-derives everything from the pinned submodule: vendored engine,
 card data, translations, and the ported test suite.
@@ -216,10 +226,10 @@ Real and deliberate, not oversights:
 - **Cursed Items are dealt one per player** from their own deck into a separate
   zone (they do not count against the hand limit). Worth confirming against the
   physical rules: this is the one expansion rule inferred rather than read.
-- **German is missing the Phoenix (FR55)**, and Italian has no Cursed Hoard at
-  all (55 of 103 cards). Missing text falls back to English per card, marked with
-  a small "EN" badge. Upstream's data, not ours; supplying the German Phoenix
-  text would fix it at the source.
+- **Italian has no Cursed Hoard at all** (55 of 103 cards). Missing text falls
+  back to English per card, marked with a small "EN" badge. Upstream's data, not
+  ours. German's one hole was the Phoenix, which is no longer dealt, so German
+  now plays with no fallback text anywhere.
 
 
 ## Hand order and the end-of-game reveal
@@ -245,10 +255,13 @@ is either held for ~190ms or moved ~16px, then breaks loose.
 After that it is springs, not tweens. Position, lift and the flight home are
 each a damped spring integrated against real elapsed time, in sub-steps of
 1/240s so a long frame cannot make one explode. Damping is written as a fraction
-of critical (0.82 while following, exactly 1 while landing), which settles in
-about 150ms with an overshoot too small to see: snappy rather than springy. The
-earlier "move 26% of the remaining distance each frame" was neither, and it
-settled twice as fast on a 120Hz screen as on a 60Hz one.
+of critical: 0.7 while following, and on the flight home it depends on how hard
+the card was thrown, exactly critical when it is set down gently and 0.7 at
+2600px/s, so an ordinary drag simply arrives and a throw goes a little past its
+place and comes back. Both settle in about 150ms with an overshoot too small to
+read as a bounce: snappy rather than springy. The earlier "move 26% of the
+remaining distance each frame" was neither, and it settled twice as fast on a
+120Hz screen as on a 60Hz one.
 
 The spring aims at the pointer with the card centred on it, so breaking loose
 also gathers the card under the hand that picked it up. It is the resulting lag
@@ -268,10 +281,14 @@ as the gap the same way a rearrangement's faded card is. That is what gives an
 arriving card something to snap to, and it means the place you can see is the
 place the card will take. No place is offered for a draw that would be refused.
 
-The hold fades out with how fast the pointer is moving: fully there below
-260px/s, gone above 1100px/s. Detents are for putting a card down deliberately,
-and a throw starts inside the hand, so without this a fling was caught by every
-cell it crossed on the way out. The speed measured is the pointer's, not the
+The hold itself is a detent: while a card sits in a gap it is pulled back
+towards it at 68% strength, giving out only once the pointer is 0.6 of a cell
+away, which is the distance the gap moves along by. So a card clings to the row,
+strains, and drops into the next place rather than sliding continuously through
+positions it was never really in. The hold fades out with how fast the pointer
+is moving: fully there below 260px/s, gone above 1100px/s. Detents are for
+putting a card down deliberately, and a throw starts inside the hand, so without
+this a fling was caught by every cell it crossed on the way out. The speed measured is the pointer's, not the
 card's, since the card is the thing being held back.
 
 **The magnet.** While a card is over somewhere it could land, its target is
@@ -371,7 +388,7 @@ Space opens the card in full. Whatever still overflows is simply cut off: the
 bottom of the body used to fade under a mask, but that dimmed the last lines of
 every card whether anything was being cut or not, and at the two smaller sizes
 almost nothing is (five of 102 cards run past 210 characters in German, Lantern
-worst at 324). Removed at Hagen's call (2026-09-10).
+worst at 324). Removed by owner decision (2026-09-10).
 
 Hovering used to drop the ratio and let the card grow over its neighbours to
 show that tail. It does not any more: a hand is a row of identical rectangles,
@@ -609,7 +626,7 @@ LAN as well as through a proxy with TLS.
 **Cards are operable without a pointer.** During play there used to be zero
 focusable elements in `<main>`; dragging was the only way to do anything at
 all. Cards are now `role="button"`, focusable and labelled ("Rauch, Stärke 27,
-Wetter – blockiert"). Enter draws or discards, Alt+←/→ sorts the hand, Space
+Wetter, blockiert"). Enter draws or discards, Alt+←/→ sorts the hand, Space
 opens the card full size. Focus lights up the same relationships that hovering
 does, so the highlighting is not mouse-only.
 
@@ -646,7 +663,7 @@ in three lines.
 
 **Not done, deliberately:** the phone layout. Below 900px the discard row still
 forces five columns while the hand drops to four, so the page scrolls sideways
-(573px of content in a 390px viewport). Hagen parked it.
+(573px of content in a 390px viewport). Parked.
 
 ## Known divergences from upstream
 
@@ -675,15 +692,17 @@ The real inconsistency is between the two Phoenix printings. In the identical ha
 `PHOENIX_PROMO` explicitly in `blanks()`, a code path that never consults
 `penaltyCleared`. The two cards are meant to be the same card.
 
-**Open question for Hagen** (he owns the physical cards): does Beastmaster's
+**Open question for whoever owns the physical cards**: does Beastmaster's
 "CLEARS the Penalty on all Beasts" cancel Phoenix's "BLANKED if you have any
 Flood"? Until answered, we ship upstream's behaviour unmodified, which means
 FR55 and FR55P disagree in this one exotic hand.
 
-Since the promo was dropped (2026-09-08) that disagreement cannot reach a real
-game: `FR55P` is never dealt, so every table plays the `FR55` reading and is at
-least consistent with itself. The vector stays `it.todo` because it is upstream's
-own expectation and we still do not match it.
+Since both Phoenixes were dropped (the promo 2026-09-08, `FR55` itself
+2026-09-11) the disagreement cannot reach a real game: neither card is ever
+dealt, so no table ever scores one. The vector stays `it.todo` because it is
+upstream's own expectation, it is still run against the engine, and we still do
+not match it. The open question above is therefore no longer blocking anything;
+it only decides whether `FR55` could ever come back.
 
 ## Working agreement
 
