@@ -38,9 +38,9 @@ RUN npm ci --omit=dev --no-audit --fund=false && npm cache clean --force
 # `node` user at uid 1000, which is also the first regular user on most single-
 # user Linux hosts, so reusing it (rather than creating our own `fr` user) is
 # what makes the bind mount writable without also having to chown the host
-# directory or run the container as root. If your host's uid is not 1000,
-# either `chown -R 1000 ./DATA` once, or add `user: "$(id -u):$(id -g)"` to the
-# compose service.
+# directory or run the container as root. Hosts where that uid is wrong say so
+# in .env (FR_UID/FR_GID), which docker-compose.yml passes as `user:`;
+# scripts/deploy.sh fills it in from `id -u` on the first run.
 RUN mkdir -p /data && chown -R node:node /data
 
 ENV FR_DATA_DIR=/data

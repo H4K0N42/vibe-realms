@@ -1,3 +1,7 @@
+# Values come from .env (see .env.example), which git does not track, so
+# `scripts/deploy.sh` can pull a new version of this file without resetting the
+# settings of this particular host. The defaults after `:-` are what you get
+# with no .env at all.
 services:
   vibe-realms:
     build: .
@@ -5,17 +9,17 @@ services:
     restart: unless-stopped
     ports:
       # Plain HTTP. Pangolin terminates TLS and proxies to this.
-      - "3000:3000"
+      - "${FR_HOST_PORT:-3000}:3000"
     environment:
       PORT: "3000"
       FR_DATA_DIR: /data
     volumes:
       # A bind mount, not a named volume: the database sits in ./DATA next to
       # the compose file, visible and backed up like any other file on the
-      # host. This only works because the image runs as the `node` user
-      # (uid 1000, see Dockerfile), matching the uid that owns a freshly
-      # created host directory on most single-user Linux boxes. If that does
-      # not match here, either `chown -R 1000 ./DATA` once, or uncomment the
-      # `user:` line below with your own host uid:gid.
-      - ./DATA:/data
-    # user: "1000:1000"
+      # host.
+      - ${FR_DATA:-./DATA}:/data
+    # A bind mount keeps the host directory's ownership, so the container has to
+    # run as a uid that can write it. 1000 is both the image's built in `node`
+    # user and the usual first user on a single user host; override in .env if
+    # this host disagrees.
+    user: "${FR_UID:-1000}:${FR_GID:-1000}"

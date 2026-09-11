@@ -6,13 +6,19 @@ dist/
 # package before running its script).
 /data/
 apps/server/data/
-# The Docker container's bind-mounted database (see docker-compose.yml).
+# The Docker container's bind-mounted database (see docker-compose.yml) and the
+# snapshots scripts/deploy.sh takes of it before every restart.
 /DATA/
+/backups/
 # WAL mode (apps/server/src/db.ts) always writes these two alongside the
 # database file itself.
 *.sqlite
 *.sqlite-journal
 *.sqlite-shm
 *.sqlite-wal
+# Host specific deployment settings, seeded from .env.example on first deploy.
+# Untracked on purpose: this is what lets an update pull a new compose file
+# without resetting the port or the uid of this particular machine.
 .env
+docker-compose.override.yml
 .DS_Store

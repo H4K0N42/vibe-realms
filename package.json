@@ -16,7 +16,8 @@
     "dev": "npm run dev --workspaces --if-present",
     "sync": "node scripts/sync-engine.mjs && node scripts/extract-cards.mjs && node scripts/sync-i18n.mjs && node scripts/sync-colours.mjs && node scripts/compute-harm.mjs && node scripts/gen-upstream-tests.mjs",
     "e2e": "node scripts/e2e-smoke.mjs",
-    "start": "node apps/server/src/index.ts"
+    "start": "node apps/server/src/index.ts",
+    "deploy": "bash scripts/deploy.sh"
   },
   "allowScripts": {
     "esbuild@0.25.12": true

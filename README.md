@@ -40,17 +40,48 @@ The whole thing is one container: static client plus websocket game server over
 plain HTTP. TLS and proxying are expected to be handled in front of it.
 
 ```sh
-docker compose up -d      # http://localhost:3000
+git clone https://github.com/H4K0N42/vibe-realms.git
+cd vibe-realms
+./scripts/deploy.sh dev      # http://localhost:3000
 ```
 
-Games live in SQLite on a named volume, so they survive a container replacement.
-A room is marked abandoned when everyone leaves or after two hours without a
-move, and is deleted an hour after that.
+Games live in SQLite in `./DATA`, a bind mount, so they are plain files on the
+host: visible, backed up with `tar`, and not lost to a `docker volume prune`. A
+room is marked abandoned when everyone leaves or after two hours without a move,
+and is deleted an hour after that.
 
-Configuration is three environment variables: `PORT` (default 3000),
-`FR_DATA_DIR` (where the SQLite file goes) and `FR_STATIC_DIR` (the built
-client). `/api/health` reports the room count and is what the container's
-healthcheck calls.
+Host settings go in `.env`, which the first deploy seeds from `.env.example`:
+the published port (`FR_HOST_PORT`), where the database lives (`FR_DATA`) and
+the uid the container runs as (`FR_UID`/`FR_GID`, which has to be able to write
+`FR_DATA`). `.env` is gitignored, so an update can bring in a new
+`docker-compose.yml` without resetting this machine's settings.
+
+The container itself is configured by three environment variables: `PORT`
+(default 3000), `FR_DATA_DIR` (where the SQLite file goes) and `FR_STATIC_DIR`
+(the built client). `/api/health` reports the room count and is what the
+container's healthcheck calls.
+
+### Updating
+
+The same script, again:
+
+```sh
+./scripts/deploy.sh          # the branch you are already on
+./scripts/deploy.sh main     # switch to main
+./scripts/deploy.sh dev      # switch to dev
+```
+
+It fetches, fast forwards, rebuilds the image, and restarts. Before the restart
+it stops the container and snapshots `DATA` to `backups/` with the container
+closed, so the copy is not a half written SQLite file; the last ten snapshots
+are kept. `DATA` and `.env` are never written to, and the script contains
+neither `down -v` nor `git clean`, the two ways an update could eat a running
+game.
+
+If the working tree has local changes to tracked files it stops and says so
+rather than clobbering them. `--force` discards them, saving a patch to
+`backups/` first. `--no-build`, `--no-pull` and `--no-backup` skip the
+corresponding step; `--help` lists everything.
 
 ## Developing
 
@@ -83,7 +114,7 @@ packages/engine     node:vm-per-room wrapper plus vendor/ (never edited)
 packages/carddata   generated card data and 14 locales of text
 apps/server         game state machine, rooms, websockets, SQLite
 apps/web            Vite + React client
-scripts/            sync and codegen, e2e, a companion player for manual testing
+scripts/            sync and codegen, e2e, deploy.sh, a companion player
 ```
 
 ### The submodule and `npm run sync`

@@ -47,6 +47,27 @@ What it does **not** contain:
 - **Single Docker container**, plain HTTP. Pangolin handles proxy and TLS externally.
 - Server is authoritative for the **shuffled deck order and hidden hands**.
 
+### Deployment
+
+`scripts/deploy.sh [main|dev]` is the whole story: fetch, rebuild, restart. Two
+things it is built to never do, because an update that eats a live game is
+worse than no update at all.
+
+The database is a **bind mount** (`./DATA`), not a named volume, so it is a
+plain host directory that is visible, backed up with `tar`, and impossible to
+lose to a `docker volume prune`. The container runs as the base image's built
+in `node` user (uid 1000) rather than a user the image invents, because a bind
+mount keeps the *host's* ownership and a generated uid would not match it. The
+script never runs `down -v` and never runs `git clean`, the two commands that
+would take `DATA` with them.
+
+Host-specific settings (port, data path, uid) live in `.env`, which is
+gitignored and seeded from `.env.example` on first run. `docker-compose.yml`
+reads them as `${FR_HOST_PORT:-3000}` and friends. That indirection exists so
+that pulling a new compose file cannot reset the settings of the machine it is
+pulled onto; without it, every update would silently revert local edits to a
+tracked file.
+
 ### Engine reuse
 
 Decision: reuse `deck.js` / `hand.js` / `discard.js` / `combinatorics.js`
