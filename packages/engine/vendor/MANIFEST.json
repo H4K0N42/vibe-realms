@@ -11,5 +11,11 @@
     "hand.js": "c8547072ad1b3c10",
     "combinatorics.js": "792a7d16b22e5532"
   },
-  "syncedAt": "2026-09-02T16:39:20.251Z"
+  "upstream": {
+    "repo": "https://github.com/fantasy-realms/fantasy-realms.github.io",
+    "commit": "c3fa5cd690baa0dbb599c9d61b1cdfd530242d2b",
+    "license": "MIT",
+    "licenseFile": "LICENSE"
+  },
+  "syncedAt": "2026-09-11T10:49:33.373Z"
 }

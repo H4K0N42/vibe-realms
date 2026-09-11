@@ -3,6 +3,7 @@
 //
 // The files are NOT modified. They are loaded into a per-room node:vm context
 // at runtime because they declare process-global singletons.
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,8 +27,30 @@ for (const file of FILES) {
   console.log(`  ${file}  ${manifest[file]}`);
 }
 
+// Provenance, because these files are MIT and MIT wants the copyright notice
+// kept with the code. The commit is what makes `vendor/LICENSE` checkable: it
+// says which upstream state these bytes were taken from, and that state is one
+// that carries a licence. (The pin was below that commit until 2026-09-11.)
+const commit = execFileSync('git', ['-C', join(root, 'calculator'), 'rev-parse', 'HEAD'])
+  .toString()
+  .trim();
+
 writeFileSync(
   join(dest, 'MANIFEST.json'),
-  JSON.stringify({ loadOrder: FILES, sha256: manifest, syncedAt: new Date().toISOString() }, null, 2) + '\n'
+  JSON.stringify(
+    {
+      loadOrder: FILES,
+      sha256: manifest,
+      upstream: {
+        repo: 'https://github.com/fantasy-realms/fantasy-realms.github.io',
+        commit,
+        license: 'MIT',
+        licenseFile: 'LICENSE',
+      },
+      syncedAt: new Date().toISOString(),
+    },
+    null,
+    2,
+  ) + '\n',
 );
 console.log(`\nSynced ${FILES.length} files -> packages/engine/vendor/`);

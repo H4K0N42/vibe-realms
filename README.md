@@ -145,11 +145,21 @@ the colours come from, and every known divergence from upstream.
 
 ## Credit and licensing
 
-The card game *Fantasy Realms* is designed by Bruce Glassco and published by
-WizKids. This project is an unofficial, non-commercial implementation for
-private play and is not affiliated with or endorsed by the publisher.
+Three layers, and only the first one is mine to license.
 
-The vendored engine files under `packages/engine/vendor/` come from
-`fantasy-realms/fantasy-realms.github.io`. Its `gh-pages` branch carries no
-LICENSE file, so check the repository's default branch before reusing that code
-in any form.
+**This project's own code** is MIT, see [LICENSE](LICENSE). That covers the
+server, the client, the packages and the scripts.
+
+**The vendored scoring engine** under `packages/engine/vendor/` comes from
+[fantasy-realms/fantasy-realms.github.io](https://github.com/fantasy-realms/fantasy-realms.github.io)
+and is also MIT, copyright the upstream authors. Their licence text sits next
+to the files it covers, in
+[packages/engine/vendor/LICENSE](packages/engine/vendor/LICENSE).
+
+**The game itself is not covered by either.** *Fantasy Realms* is designed by
+Bruce Glassco and published by WizKids, and the card names and rules text in
+`packages/carddata/` are theirs. Neither upstream nor this project can grant
+rights to them, so the MIT licence above applies to the code and not to the
+card content. This is an unofficial, non-commercial implementation for private
+play, not affiliated with or endorsed by the publisher. No artwork and no card
+scans are distributed; if you want to play, buy the game.

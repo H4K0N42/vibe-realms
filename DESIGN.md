@@ -15,7 +15,11 @@ data, rules logic and translations.
 ## The submodule
 
 `calculator/` = `fantasy-realms/fantasy-realms.github.io`, branch `gh-pages`,
-**pinned at `fb722b2`**. Vanilla JS PWA (jQuery + Handlebars, no build step).
+**pinned at `c3fa5cd`**. Vanilla JS PWA (jQuery + Handlebars, no build step).
+The pin was `fb722b2` until 2026-09-11 and was moved up one commit for the
+licence: `c3fa5cd` adds upstream's MIT LICENSE and touches nothing else, so the
+engine bytes are identical and a full `npm run sync` across it changed only the
+provenance block in `vendor/MANIFEST.json`.
 
 What it contains:
 
@@ -38,8 +42,13 @@ What it does **not** contain:
 - **Any game loop.** No turn order, no draw, no endgame trigger. `discard.js` is
   only a discard-*area* tracker for scoring (several Cursed Hoard cards care what
   is in the discard area). Game flow is entirely ours to write.
-- No LICENSE file on the `gh-pages` branch, so check `main` before relying on
-  the vendored code, even for private use.
+- Upstream is **MIT** (LICENSE added to `gh-pages` in `c3fa5cd6`, 2026-07-27).
+  It was unlicensed when this project started, which is why older notes here
+  said to check before relying on the vendored code. The licence text ships
+  beside the files it covers in `packages/engine/vendor/LICENSE`. What MIT does
+  *not* cover, because upstream cannot grant it either, is the card text and the
+  game design: those are WizKids' (`calculator/index.html` carries their
+  copyright line). See the README for how the three layers are kept apart.
 
 ## Architecture
 
